@@ -2,16 +2,17 @@
 
 ## 开发环境
 
-* Python 3.7.7
+* 原始开发环境 ~~Python 3.7.7~~
+* 新版开发环境： python-3.11.9
 
 ## 实现原理
 
-* 基于窗口句柄和图像识别技术
+* 基于窗口句柄和图像、文字识别技术
 
 ## 需要安装的库
 
 ```shell
-pip install opencv-contrib-python numpy keyboard pywin32 opencv-python pyautogui dxcam
+pip install opencv-contrib-python numpy keyboard pywin32 opencv-python pyautogui dxcam easyocr
 ```
 
 更新库
