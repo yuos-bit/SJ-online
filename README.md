@@ -23,7 +23,7 @@ pip install --upgrade pywin32
 
 ## 使用方法
 
-* 1.安装好[python3.7.7](https://pan.yuos.top/s/46fN?path=%2Fwindows%2F%E8%BD%AF%E4%BB%B6%E5%A4%A7%E5%85%A8%2FPython3)
+* 1.安装好[python3](https://pan.yuos.top/s/46fN?path=%2Fwindows%2F%E8%BD%AF%E4%BB%B6%E5%A4%A7%E5%85%A8%2FPython3)
 * 2.将你需要遍历的图标截图放到对应目录下即可（仅限自动挂机&跳图&用药.py），格式为.jpg，图片名字可为英文或英文+数字
 
 ![示例](https://free.picui.cn/free/2025/08/22/68a821e62bd23.png)
