@@ -121,7 +121,7 @@ def main():
         return
 
     CLICK_THRESHOLD = 0.85   # 置信度阈值
-    MAX_ROUNDS = 200         # 最大轮数（1-8 全部完成算 1 轮）
+    MAX_ROUNDS = 178         # 最大轮数（1-8 全部完成算 1 轮）
 
     print("开始顺序后台检测并点击，每张图按顺序点击...")
     print("按 Q 键可以随时结束脚本。")
