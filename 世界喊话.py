@@ -145,7 +145,7 @@ def main():
     CLICK_THRESHOLD = 0.85
     MAX_ROUNDS = 100
     MESSAGE_INTERVAL = 20
-    MESSAGE_TEXT = "1金1件收战神套装，现在什么都缺，直邮不卡!/f03/f03/f03/b030/b039"
+    MESSAGE_TEXT = "6金收两把巫月刀，有的直邮不卡！/f03/b030/b034/b031/b033"
 
     print("开始顺序后台检测并点击，每张图按顺序点击...")
     print("按 Q 键可以随时结束脚本。")
