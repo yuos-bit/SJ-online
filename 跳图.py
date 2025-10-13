@@ -144,9 +144,9 @@ def main():
 
         # 50ms 循环间隔
         if not clicked:
-            time.sleep(0.02)
+            time.sleep(0.5)
         else:
-            time.sleep(0.1)  # 匹配点击后延迟100ms
+            time.sleep(0.5)  # 匹配点击后延迟100ms
 
 if __name__ == "__main__":
     main()
