@@ -79,7 +79,7 @@ def window_screenshot(hwnd):
 
 def load_templates(script_dir):
     """加载模板图片（支持jpg/png）"""
-    jpg_dir = os.path.join(script_dir, "jpg-mumu")  # 模板目录适配
+    jpg_dir = os.path.join(script_dir, "jpg-edge")  # 模板目录适配
     if not os.path.exists(jpg_dir):
         print(f"未找到模板目录: {jpg_dir}")
         return []
@@ -94,7 +94,7 @@ def load_templates(script_dir):
                 print(f"加载模板成功: {path}")
     
     if not templates:
-        print("模板目录(jpg-mumu)下没有可用的图片")
+        print("模板目录(jpg-edge)下没有可用的图片")
     return templates
 
 def find_image(target, template, threshold=0.7):
