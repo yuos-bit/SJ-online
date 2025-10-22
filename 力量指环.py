@@ -155,7 +155,7 @@ def main():
             else:
                 current_index += 1
 
-            time.sleep(0.3)  # 点击后小延迟
+            time.sleep(0.35)  # 点击后小延迟
         else:
             time.sleep(0.05)  # 未找到时快速轮询
 
