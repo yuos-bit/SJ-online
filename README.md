@@ -1,5 +1,9 @@
 # 世界Online 微信小程序辅助脚本
 
+## 效果展示
+
+![脚本多开示例](./demo/demo.gif)
+
 ## 开发环境
 
 * 原始开发环境 ~~Python 3.7.7~~
@@ -24,36 +28,27 @@ pip install --upgrade pywin32
 ## 使用方法
 
 * 1.安装好[python3](https://pan.yuos.top/s/46fN?path=%2Fwindows%2F%E8%BD%AF%E4%BB%B6%E5%A4%A7%E5%85%A8%2FPython3)
-* 2.将你需要遍历的图标截图放到对应目录下即可（仅限自动挂机&跳图&用药.py），格式为.jpg，图片名字可为英文或英文+数字
+* 2.安装好[谷歌浏览器](https://www.chromedownloads.net/chrome64win/)
+* 3.拉取脚本仓库：
 
-![示例](https://free.picui.cn/free/2025/08/22/68a821e62bd23.png)
+  ```shell
+  git clone -b chrome https://github.com/yuos-bit/SJ-online
+  ```
 
-* 3.黑魔战马、黑魔指环、力量指环 需要到对应怪流程后运行才可正常刷怪，默认为刷100次，如需修改次数，可修改 `MAX_ROUNDS = 100`为`MAX_ROUNDS = 200`即可改为刷200次,世界喊话需要到对应喊话界面运行才可以。
+* 4.将你需要遍历的图标截图放到对应目录下(例如：jpg-1)即可，格式为.jpg，图片名字可为英文或英文+数字，但不可包含空格或者中文。
+* 打开游戏地址：<https://sjh5cdn2.good321.net/resgood/index.html?subchannel=live_douyin2>
 
-<div style="display: flex; gap: 10px;">
+### 基础玩法
 
-  <img src="https://free.picui.cn/free/2025/08/22/68a824b7289ad.png" width="300px" />
-  <img src="https://free.picui.cn/free/2025/08/22/68a824da77d6c.png" width="300px" />
+* 1.修改脚本中游戏名字，具体见下图![image.png](https://free.picui.cn/free/2025/10/23/68f99a9194117.png)需要开几个号就复制几个`跳图.py`，修改图中位置就行。
+* 然后打开cmd（右键管理员运行）
+![image.png](https://free.picui.cn/free/2025/10/23/68f99c0aa4ac2.png)
+进入对应目录后运行`python 跳图-2.py` 即可愉快游戏了。
+![image.png](https://free.picui.cn/free/2025/10/23/68f99d2156b23.png)
 
-</div>
+**注意：图片可能无法通用，所以，如果你的模板加载成功后无任何动静，请重新自行截图替换本项目中的图片然后重新运行脚本即可.**
 
-* 4.脚本执行过程中按`Q`可终止程序
+### 进阶玩法
 
-<div style="display: flex; gap: 10px;">
+#### 1.刷游戏装备
 
-  <img src="https://free.picui.cn/free/2025/08/22/68a8259d1e325.png" width="300px" />
-  <img src="https://free.picui.cn/free/2025/08/22/68a825d16a06b.png" width="300px" />
-</div>
-
-* 5.开盒子脚本将你要开的盒子图放到 `jpg-6` 里替换即可，然后打开背包运行脚本即可快速开盒子。
-
-* 6.脚本和文件夹对应关系。
-
-| 脚本名称 | 对应目录 |
-| --- | --- |
-| 自动挂机&跳图&用药.py | jpg |
-| 力量指环.py | jpg-2 |
-| 黑魔战马.py | jpg-3 |
-| 黑魔指环.py | jpg-4 |
-| 世界喊话.py | jpg-5 |
-| 开盒子.py | jpg-6 |
