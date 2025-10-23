@@ -52,3 +52,6 @@ pip install --upgrade pywin32
 
 #### 1.刷游戏装备
 
+* 示例脚本`黑魔战马.py`，修改以下内容可调整匹配以及刷怪轮次。也可以将对应脚本和目录复制一个后修改对应的脚本中目录名称即可刷其他的。
+![image.png](https://free.picui.cn/free/2025/10/23/68f9a079659f2.png)
+![image.png](https://free.picui.cn/free/2025/10/23/68f9a0fd79edc.png)
