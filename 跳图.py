@@ -122,13 +122,13 @@ def send_click(hwnd, x, y):
 
 def main():
     """主函数：仅向第一层子窗口发送点击"""
-    # 1. 顶层父窗口：Qt5156QWindowIcon / MuMu安卓设备
-    hwnd_level1 = get_window_handle("Qt5156QWindowIcon", "MuMu安卓设备")
+    # 1. 顶层父窗口：Chrome_WidgetWin_1 / 世界OL - (1-74_5001)金坤 - Google Chrome
+    hwnd_level1 = get_window_handle("Chrome_WidgetWin_1", "世界OL - (1-74_5001)金坤 - Google Chrome")
     if hwnd_level1 == 0:
         return
 
-    # 2. 第一层子窗口：Qt5156QWindowIcon / MuMuNxDevice（仅向该窗口发送点击）
-    hwnd_target = get_child_window(hwnd_level1, "Qt5156QWindowIcon", "MuMuNxDevice")
+    # 2. 第一层子窗口：Chrome_WidgetWin_1 / Chrome Legacy Window（仅向该窗口发送点击）
+    hwnd_target = get_child_window(hwnd_level1, "Chrome_RenderWidgetHostHWND", "Chrome Legacy Window")
     if hwnd_target is None:
         return
 
@@ -162,7 +162,7 @@ def main():
                 break  # 匹配一个后停止
 
         # 控制循环间隔
-        time.sleep(1 if clicked else 0.5)
+        time.sleep(0.5 if clicked else 0.03)
 
 if __name__ == "__main__":
     main()
