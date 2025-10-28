@@ -144,8 +144,9 @@ def main():
 
     CLICK_THRESHOLD = 0.85
     MAX_ROUNDS = 100
-    MESSAGE_INTERVAL = 20
-    MESSAGE_TEXT = "10金一张收战士主动-冲锋技能卷轴，有的直邮/f31/f31/f31/b050/b052"
+    MESSAGE_INTERVAL = 50
+    # 隔50S喊话一次
+    MESSAGE_TEXT = "/f31/f31/f31紫禁城摆摊，全部大甩卖了/b030/b031/b032/b033/b034/b035/b038/b039/b040/b065/b081/b068/b069/b070/b075/b079"
 
     print("开始顺序后台检测并点击，每张图按顺序点击...")
     print("按 Q 键可以随时结束脚本。")
