@@ -155,9 +155,9 @@ def main():
             else:
                 current_index += 1
 
-            time.sleep(0.1)  # 点击后小延迟
+            time.sleep(0.3)  # 点击后小延迟
         else:
-            time.sleep(0.9)  # 未找到时快速轮询
+            time.sleep(0.5)  # 未找到时快速轮询
 
     if rounds >= MAX_ROUNDS:
         print("已达到最大轮数，脚本结束。")
