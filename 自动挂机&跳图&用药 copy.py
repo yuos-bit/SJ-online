@@ -143,7 +143,7 @@ def main():
 
         # 50ms 循环间隔
         if not clicked:
-            time.sleep(0.2)
+            time.sleep(0.3)
         else:
             time.sleep(0.2)  # 匹配点击后延迟500ms
 
