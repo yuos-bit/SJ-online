@@ -155,7 +155,7 @@ def send_click(hwnd, x, y):
 def main():
     """主函数：适配同级子窗口，支持遮挡场景"""
     # 1. 获取Chrome父窗口（你确认的类名和标题，无需修改）
-    hwnd_level1 = get_window_handle("Chrome_WidgetWin_1", "世界OL - (1-74_5001)金坤 - Google Chrome")
+    hwnd_level1 = get_window_handle("Chrome_WidgetWin_1", "世界OL - 墨贤 - Google Chrome")
     if hwnd_level1 == 0:
         return
 
