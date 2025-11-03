@@ -110,20 +110,25 @@ def window_screenshot(hwnd):
     return cv2.cvtColor(img, cv2.COLOR_BGRA2BGR), (left, top)
 
 def load_templates(script_dir):
-    """加载模板图片（支持jpg/png）"""
+    """加载模板图片（支持jpg/png，按文件名数字顺序排序）"""
     jpg_dir = os.path.join(script_dir, "jpg-1")  # 模板目录适配
     if not os.path.exists(jpg_dir):
         print(f"未找到模板目录: {jpg_dir}")
         return []
     
     templates = []
-    for f in os.listdir(jpg_dir):
-        if f.lower().endswith((".jpg", ".png")):
-            path = os.path.join(jpg_dir, f)
-            img = cv2.imread(path, cv2.IMREAD_COLOR)
-            if img is not None:
-                templates.append((f, img))
-                print(f"加载模板成功: {path}")
+    # 筛选图片文件并按文件名数字排序（支持1.jpg < 2.jpg < 10.jpg）
+    img_files = sorted(
+        [f for f in os.listdir(jpg_dir) if f.lower().endswith((".jpg", ".png"))],
+        key=lambda x: int(os.path.splitext(x)[0]) if os.path.splitext(x)[0].isdigit() else x
+    )
+    
+    for f in img_files:
+        path = os.path.join(jpg_dir, f)
+        img = cv2.imread(path, cv2.IMREAD_COLOR)
+        if img is not None:
+            templates.append((f, img))
+            print(f"加载模板成功: {path}")
     
     if not templates:
         print("模板目录(jpg-1)下没有可用的图片")
@@ -148,12 +153,12 @@ def send_click(hwnd, x, y):
         win32api.SendMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, lParam)
         time.sleep(0.03)  # 模拟按下延迟
         win32api.SendMessage(hwnd, win32con.WM_LBUTTONUP, None, lParam)
-        print(f"已向第一层子窗口发送点击: 句柄={hwnd} | 坐标({x},{y})")
+        print(f"已向窗口发送点击: 句柄={hwnd} | 坐标({x},{y})")
     except Exception as e:
-        print(f"第一层子窗口点击失败: 句柄={hwnd} | 错误={e}")
+        print(f"窗口点击失败: 句柄={hwnd} | 错误={e}")
 
 def main():
-    """主函数：适配同级子窗口，支持遮挡场景"""
+    """主函数：按模板顺序执行，循环往复"""
     # 1. 获取Chrome父窗口（你确认的类名和标题，无需修改）
     hwnd_level1 = get_window_handle("Chrome_WidgetWin_1", "世界OL - 墨✨逐星 - Google Chrome")
     if hwnd_level1 == 0:
@@ -172,35 +177,74 @@ def main():
         hwnd_target = hwnd_level1
         print("已切换为父窗口模式（不影响截图和点击功能）")
 
-    # 加载模板（原逻辑不变）
+    # 3. 加载模板（按数字顺序）
     script_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
     templates = load_templates(script_dir)
     if not templates:
         return
+    total_templates = len(templates)
+    current_index = 0  # 当前执行的模板索引（从0开始）
+    total_rounds = 0  # 已完成的完整轮数
 
+    # 4. 配置参数
     CLICK_THRESHOLD = 0.90
-    print("\n开始检测（支持遮挡窗口）...")
-    print("按 Q 键结束脚本")
+    MAX_RETRIES_PER_TEMPLATE = 20  # 单个模板最大重试次数（快速匹配）
+    RETRY_INTERVAL = 0.3  # 重试间隔（秒）
+    AFTER_CLICK_DELAY = 0.6  # 点击后切换下一个模板的延迟
+
+    print(f"\n开始按顺序执行模板（共{total_templates}个），按 Q 键结束脚本")
+    print(f"配置：匹配阈值={CLICK_THRESHOLD} | 单模板重试={MAX_RETRIES_PER_TEMPLATE}次 | 点击后延迟={AFTER_CLICK_DELAY}秒")
 
     while True:
         if keyboard.is_pressed('q'):
-            print("脚本已结束")
+            print(f"\n脚本已结束 | 已完成{total_rounds}轮 | 当前执行到第{current_index+1}个模板")
             break
 
-        # 截图和点击（原逻辑不变，若用父窗口，坐标仍会精准匹配子窗口内容）
-        img, (win_left, win_top) = window_screenshot(hwnd_target)
-        clicked = False
+        # 获取当前要执行的模板
+        template_name, template_img = templates[current_index]
+        retry_count = 0
+        matched = False
 
-        for name, template in templates:
-            center_pt, _, _, score = find_image(img, template, CLICK_THRESHOLD)
+        # 单个模板多次重试匹配（确保界面加载完成）
+        while retry_count < MAX_RETRIES_PER_TEMPLATE:
+            # 每次重试都重新截图（获取最新界面）
+            img, (win_left, win_top) = window_screenshot(hwnd_target)
+            center_pt, _, _, score = find_image(img, template_img, CLICK_THRESHOLD)
+
             if center_pt and score >= CLICK_THRESHOLD:
+                # 匹配成功，执行点击
                 click_x, click_y = center_pt
-                print(f"找到目标: {name} | 置信度: {score:.2f} | 坐标({click_x},{click_y})")
+                print(f"\n✅ 找到目标[{current_index+1}/{total_templates}]: {template_name} | 置信度={score:.2f} | 坐标({click_x},{click_y})")
                 send_click(hwnd_target, click_x, click_y)
-                clicked = True
+                matched = True
                 break
+            else:
+                # 每5次重试打印一次日志（避免刷屏）
+                if retry_count % 5 == 0:
+                    print(f"🔍 重试[{retry_count}/{MAX_RETRIES_PER_TEMPLATE}] 目标[{current_index+1}/{total_templates}]: {template_name} | 最高置信度={score:.2f}")
+                retry_count += 1
+                time.sleep(RETRY_INTERVAL)
 
-        time.sleep(0.1 if clicked else 0.03)
+        # 处理匹配结果，切换到下一个模板
+        if matched:
+            # 切换索引
+            current_index += 1
+            # 完成一轮后重置索引，统计轮数
+            if current_index >= total_templates:
+                current_index = 0
+                total_rounds += 1
+                print(f"\n🎉 完成第{total_rounds}轮所有模板")
+            # 点击后延迟，给界面加载时间
+            time.sleep(AFTER_CLICK_DELAY)
+        else:
+            # 重试多次仍未匹配，跳过该模板（避免卡死）
+            print(f"\n❌ 目标[{current_index+1}/{total_templates}]: {template_name} 重试{MAX_RETRIES_PER_TEMPLATE}次仍未找到，跳过并切换下一个")
+            current_index += 1
+            if current_index >= total_templates:
+                current_index = 0
+                total_rounds += 1
+                print(f"\n⚠️  第{total_rounds}轮存在未匹配模板，进入下一轮")
+            time.sleep(0.3)
 
 if __name__ == "__main__":
     main()
