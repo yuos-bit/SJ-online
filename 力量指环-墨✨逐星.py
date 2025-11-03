@@ -190,7 +190,7 @@ def main():
     CLICK_THRESHOLD = 0.90
     MAX_RETRIES_PER_TEMPLATE = 20  # 单个模板最大重试次数（快速匹配）
     RETRY_INTERVAL = 0.3  # 重试间隔（秒）
-    AFTER_CLICK_DELAY = 0.6  # 点击后切换下一个模板的延迟
+    AFTER_CLICK_DELAY = 0.3  # 点击后切换下一个模板的延迟
 
     print(f"\n开始按顺序执行模板（共{total_templates}个），按 Q 键结束脚本")
     print(f"配置：匹配阈值={CLICK_THRESHOLD} | 单模板重试={MAX_RETRIES_PER_TEMPLATE}次 | 点击后延迟={AFTER_CLICK_DELAY}秒")
