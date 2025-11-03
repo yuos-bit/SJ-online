@@ -109,7 +109,6 @@ def send_click(hwnd_parent, hwnd_child, x, y):
 
 def main():
     # 1. 获取窗口句柄（适配你的MuMu窗口结构）
-    # 顶层父窗口：Qt5156QWindowIcon / MuMu安卓设备
     hwnd_parent = get_window_handle("Qt5156QWindowIcon", "MuMu安卓设备")
     if hwnd_parent == 0:
         return
@@ -129,34 +128,50 @@ def main():
         return
 
     # 3. 配置参数
-    CLICK_THRESHOLD = 0.85  # 匹配置信度阈值
-    MAX_ROUNDS = 120  # 最大循环轮数（可根据需要修改）
+    CLICK_THRESHOLD = 0.3  # 匹配置信度阈值
+    MAX_ROUNDS = 120  # 最大循环轮数
     current_index = 0  # 当前模板索引（从0开始）
     total_templates = len(templates)
     rounds = 0  # 已完成轮数
+    MAX_RETRIES = 20  # 当前模板最大重试次数
+    RETRY_INTERVAL = 0.3  # 重试间隔（快速重试，比原0.9秒更短）
 
     print("开始按顺序点击模板，按 Q 键结束...")
-    print(f"总模板数: {total_templates}，最大轮数: {MAX_ROUNDS}")
+    print(f"总模板数: {total_templates}，最大轮数: {MAX_ROUNDS}，单模板最大重试: {MAX_RETRIES}次")
 
     while rounds < MAX_ROUNDS:
         if keyboard.is_pressed('q'):
             print("检测到 Q 键，脚本已结束。")
             break
 
-        # 截取子窗口图像
-        img, _ = window_screenshot(hwnd_child)
         # 获取当前需要匹配的模板
         name, template = templates[current_index]
+        retry_count = 0  # 重试计数器
+        matched = False  # 是否匹配成功标记
 
-        # 匹配当前模板
-        pt, _, _, score = find_image(img, template, CLICK_THRESHOLD)
-        if pt and score >= CLICK_THRESHOLD:
-            # 点击当前模板位置
-            click_x, click_y = pt
-            print(f"找到目标[{current_index+1}/{total_templates}]: {name} 置信度={score:.2f} 坐标: {pt}")
-            send_click(hwnd_parent, hwnd_child, click_x, click_y)
+        # 对当前模板进行MAX_RETRIES次快速重试
+        while retry_count < MAX_RETRIES:
+            # 每次重试都重新截图（保证获取最新界面）
+            img, _ = window_screenshot(hwnd_child)
+            pt, _, _, score = find_image(img, template, CLICK_THRESHOLD)
 
-            # 切换到下一个模板
+            if pt and score >= CLICK_THRESHOLD:
+                # 匹配成功，执行点击
+                click_x, click_y = pt
+                print(f"找到目标[{current_index+1}/{total_templates}]: {name} 置信度={score:.2f} 坐标: {pt} (重试{retry_count}次)")
+                send_click(hwnd_parent, hwnd_child, click_x, click_y)
+                matched = True
+                break
+            else:
+                # 匹配失败，打印重试日志（每5次打印一次，避免日志刷屏）
+                if retry_count % 5 == 0:
+                    print(f"重试匹配[{retry_count}/{MAX_RETRIES}] 目标[{current_index+1}/{total_templates}]: {name} 最高置信度={score:.2f}")
+                retry_count += 1
+                time.sleep(RETRY_INTERVAL)
+
+        # 处理匹配结果
+        if matched:
+            # 匹配成功，切换到下一个模板
             if current_index == total_templates - 1:
                 # 完成一轮，重置索引并计数
                 rounds += 1
@@ -164,11 +179,16 @@ def main():
                 print(f"—— 完成第 {rounds}/{MAX_ROUNDS} 轮 ——")
             else:
                 current_index += 1
-
-            time.sleep(0.3)  # 点击后延迟，避免过快
+            time.sleep(0.6)  # 点击后延迟，避免过快切换
         else:
-            # 未找到当前模板，快速重试
-            time.sleep(0.05)
+            # 20次重试都失败，切换到下一个模板
+            print(f"❌ 目标[{current_index+1}/{total_templates}]: {name} 重试{MAX_RETRIES}次仍未找到，切换下一个模板")
+            if current_index == total_templates - 1:
+                current_index = 0
+                print(f"—— 本轮跳过未匹配模板，进入下一轮 ——")
+            else:
+                current_index += 1
+            time.sleep(0.3)  # 切换前短延迟
 
     if rounds >= MAX_ROUNDS:
         print("已达到最大轮数，脚本结束。")
