@@ -129,14 +129,16 @@ def main():
         return
 
     # 3. 配置参数
-    CLICK_THRESHOLD = 0.85  # 匹配置信度阈值
+    CLICK_THRESHOLD = 0.7  # 匹配置信度阈值
     MAX_ROUNDS = 120  # 最大循环轮数（可根据需要修改）
+    MAX_RETRIES = 30  # 每个模板的最大重试次数
     current_index = 0  # 当前模板索引（从0开始）
     total_templates = len(templates)
     rounds = 0  # 已完成轮数
+    retry_count = 0  # 当前模板的重试计数器
 
     print("开始按顺序点击模板，按 Q 键结束...")
-    print(f"总模板数: {total_templates}，最大轮数: {MAX_ROUNDS}")
+    print(f"总模板数: {total_templates}，最大轮数: {MAX_ROUNDS}，单模板最大重试次数: {MAX_RETRIES}")
 
     while rounds < MAX_ROUNDS:
         if keyboard.is_pressed('q'):
@@ -156,7 +158,8 @@ def main():
             print(f"找到目标[{current_index+1}/{total_templates}]: {name} 置信度={score:.2f} 坐标: {pt}")
             send_click(hwnd_parent, hwnd_child, click_x, click_y)
 
-            # 切换到下一个模板
+            # 切换到下一个模板，重置重试计数器
+            retry_count = 0
             if current_index == total_templates - 1:
                 # 完成一轮，重置索引并计数
                 rounds += 1
@@ -167,8 +170,23 @@ def main():
 
             time.sleep(0.3)  # 点击后延迟，避免过快
         else:
-            # 未找到当前模板，快速重试
-            time.sleep(0.05)
+            # 未找到当前模板，进行重试计数
+            retry_count += 1
+            print(f"未找到目标[{current_index+1}/{total_templates}]: {name} 置信度={score:.2f}，正在重试 {retry_count}/{MAX_RETRIES}")
+            
+            # 达到最大重试次数，跳过当前模板
+            if retry_count >= MAX_RETRIES:
+                print(f"已达到最大重试次数（{MAX_RETRIES}次），跳过当前模板[{current_index+1}/{total_templates}]")
+                # 切换到下一个模板，重置重试计数器
+                retry_count = 0
+                if current_index == total_templates - 1:
+                    rounds += 1
+                    current_index = 0
+                    print(f"—— 完成第 {rounds}/{MAX_ROUNDS} 轮 ——")
+                else:
+                    current_index += 1
+            
+            time.sleep(0.5)  # 重试间隔
 
     if rounds >= MAX_ROUNDS:
         print("已达到最大轮数，脚本结束。")
