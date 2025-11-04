@@ -92,35 +92,42 @@ def find_image(target, template, threshold=0.7):
         return center, max_loc, (w, h), max_val
     return None, None, None, max_val
 
-def send_click(hwnd_parent, hwnd_child, x, y):
-    """同时向父窗口和子窗口发送点击（确保响应）"""
-    lParam = win32api.MAKELONG(x, y)
+def send_click_to_window(hwnd, x, y):
+    """向单个窗口发送点击事件（使用客户区坐标）"""
     try:
-        win32api.SendMessage(hwnd_child, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, lParam)
-        win32api.SendMessage(hwnd_child, win32con.WM_LBUTTONUP, None, lParam)
+        lParam = win32api.MAKELONG(x, y)
+        win32api.SendMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, lParam)
+        win32api.SendMessage(hwnd, win32con.WM_LBUTTONUP, None, lParam)
+        return True
     except Exception as e:
-        print(f"子窗口点击失败: {e}")
+        print(f"窗口 {hwnd} 点击失败: {e}")
+        return False
 
-    try:
-        win32api.SendMessage(hwnd_parent, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, lParam)
-        win32api.SendMessage(hwnd_parent, win32con.WM_LBUTTONUP, None, lParam)
-    except Exception as e:
-        print(f"父窗口点击失败: {e}")
+def send_click_to_all(windows, coords):
+    """向多个窗口发送点击，每个窗口对应自己的坐标"""
+    for hwnd, (x, y) in zip(windows, coords):
+        send_click_to_window(hwnd, x, y)
 
 def main():
-    # 1. 获取窗口句柄（适配你的MuMu窗口结构）
-    # 顶层父窗口：Qt5156QWindowIcon / MuMu安卓设备
-    hwnd_parent = get_window_handle("Qt5156QWindowIcon", "MuMu安卓设备")
-    if hwnd_parent == 0:
+    # 1. 获取三层窗口句柄
+    # 最外层窗口：Qt5156QWindowIcon / MuMu安卓设备
+    hwnd_outer = get_window_handle("Qt5156QWindowIcon", "MuMu安卓设备")
+    if hwnd_outer == 0:
         return
 
-    # 第一层子窗口：Qt5156QWindowIcon / MuMuNxDevice
-    hwnd_child = get_child_window(hwnd_parent, "Qt5156QWindowIcon", "MuMuNxDevice")
-    if hwnd_child is None:
-        print("未找到子窗口: Qt5156QWindowIcon / MuMuNxDevice")
+    # 中间层窗口：Qt5156QWindowIcon / MuMuNxDevice（作为最外层的子窗口）
+    hwnd_mid = get_child_window(hwnd_outer, "Qt5156QWindowIcon", "MuMuNxDevice")
+    if hwnd_mid is None:
+        print("未找到中间层窗口: Qt5156QWindowIcon / MuMuNxDevice")
         return
-    else:
-        print(f"找到父窗口句柄: {hwnd_parent}，子窗口句柄: {hwnd_child}")
+
+    # 最内层窗口：nemuwin / nemudisplay（作为中间层的子窗口）
+    hwnd_inner = get_child_window(hwnd_mid, "nemuwin", "nemudisplay")
+    if hwnd_inner is None:
+        print("未找到最内层窗口: nemuwin / nemudisplay")
+        return
+
+    print(f"找到窗口层级 - 外层: {hwnd_outer}, 中间层: {hwnd_mid}, 内层: {hwnd_inner}")
 
     # 2. 加载模板（按顺序）
     script_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -129,37 +136,54 @@ def main():
         return
 
     # 3. 配置参数
-    CLICK_THRESHOLD = 0.7  # 匹配置信度阈值
-    MAX_ROUNDS = 120  # 最大循环轮数（可根据需要修改）
-    MAX_RETRIES = 30  # 每个模板的最大重试次数
+    CLICK_THRESHOLD = 0.85  # 匹配置信度阈值
+    MAX_ROUNDS = 120  # 最大循环轮数
     current_index = 0  # 当前模板索引（从0开始）
     total_templates = len(templates)
     rounds = 0  # 已完成轮数
-    retry_count = 0  # 当前模板的重试计数器
 
     print("开始按顺序点击模板，按 Q 键结束...")
-    print(f"总模板数: {total_templates}，最大轮数: {MAX_ROUNDS}，单模板最大重试次数: {MAX_RETRIES}")
+    print(f"总模板数: {total_templates}，最大轮数: {MAX_ROUNDS}")
+
+    # 窗口列表（三层）
+    window_handles = [hwnd_outer, hwnd_mid, hwnd_inner]
 
     while rounds < MAX_ROUNDS:
         if keyboard.is_pressed('q'):
             print("检测到 Q 键，脚本已结束。")
             break
 
-        # 截取子窗口图像
-        img, _ = window_screenshot(hwnd_child)
+        # 截取最外层窗口图像（用于识别）
+        img, (outer_left, outer_top) = window_screenshot(hwnd_outer)
         # 获取当前需要匹配的模板
         name, template = templates[current_index]
 
         # 匹配当前模板
         pt, _, _, score = find_image(img, template, CLICK_THRESHOLD)
         if pt and score >= CLICK_THRESHOLD:
-            # 点击当前模板位置
-            click_x, click_y = pt
-            print(f"找到目标[{current_index+1}/{total_templates}]: {name} 置信度={score:.2f} 坐标: {pt}")
-            send_click(hwnd_parent, hwnd_child, click_x, click_y)
+            # 计算目标点在屏幕上的绝对坐标（基于最外层窗口位置）
+            screen_x = outer_left + pt[0]
+            screen_y = outer_top + pt[1]
 
-            # 切换到下一个模板，重置重试计数器
-            retry_count = 0
+            # 计算每个窗口的客户区坐标（关键：将屏幕坐标转换为各窗口的内部坐标）
+            coords = []
+            for hwnd in window_handles:
+                client_x, client_y = win32gui.ScreenToClient(hwnd, (screen_x, screen_y))
+                coords.append((client_x, client_y))
+
+            # 输出点击信息
+            print(f"找到目标[{current_index+1}/{total_templates}]: {name}")
+            print(f"  置信度: {score:.2f}，屏幕坐标: ({screen_x}, {screen_y})")
+            print(f"  各窗口客户区坐标: {coords}")
+            
+            # 识别到后延迟0.4秒再点击
+            print("  延迟0.4秒后执行点击...")
+            time.sleep(0.4)
+
+            # 向三层窗口同时发送点击
+            send_click_to_all(window_handles, coords)
+
+            # 切换到下一个模板
             if current_index == total_templates - 1:
                 # 完成一轮，重置索引并计数
                 rounds += 1
@@ -168,25 +192,11 @@ def main():
             else:
                 current_index += 1
 
-            time.sleep(0.3)  # 点击后延迟，避免过快
+            # 点击后可根据需要保留延迟（避免操作过快），此处保留0.5秒
+            time.sleep(0.5)
         else:
-            # 未找到当前模板，进行重试计数
-            retry_count += 1
-            print(f"未找到目标[{current_index+1}/{total_templates}]: {name} 置信度={score:.2f}，正在重试 {retry_count}/{MAX_RETRIES}")
-            
-            # 达到最大重试次数，跳过当前模板
-            if retry_count >= MAX_RETRIES:
-                print(f"已达到最大重试次数（{MAX_RETRIES}次），跳过当前模板[{current_index+1}/{total_templates}]")
-                # 切换到下一个模板，重置重试计数器
-                retry_count = 0
-                if current_index == total_templates - 1:
-                    rounds += 1
-                    current_index = 0
-                    print(f"—— 完成第 {rounds}/{MAX_ROUNDS} 轮 ——")
-                else:
-                    current_index += 1
-            
-            time.sleep(0.5)  # 重试间隔
+            # 未找到当前模板，快速重试
+            time.sleep(0.1)
 
     if rounds >= MAX_ROUNDS:
         print("已达到最大轮数，脚本结束。")
