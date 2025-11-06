@@ -111,7 +111,7 @@ def window_screenshot(hwnd):
 
 def load_templates(script_dir):
     """加载模板图片（支持jpg/png，按文件名数字顺序排序）"""
-    jpg_dir = os.path.join(script_dir, "jpg-1")  # 模板目录适配
+    jpg_dir = os.path.join(script_dir, "jpg-4")  # 模板目录适配
     if not os.path.exists(jpg_dir):
         print(f"未找到模板目录: {jpg_dir}")
         return []
@@ -120,7 +120,7 @@ def load_templates(script_dir):
     # 筛选图片文件并按文件名数字排序（支持1.jpg < 2.jpg < 10.jpg）
     img_files = sorted(
         [f for f in os.listdir(jpg_dir) if f.lower().endswith((".jpg", ".png"))],
-        key=lambda x: int(os.path.splitext(x)[0]) if os.path.splitext(x)[0].isdigit() else x
+        key=lambda x: int(os.path.splitext(x)[0]) if os.path.splitext(x)[0].isdigit() else float('inf')
     )
     
     for f in img_files:
@@ -131,7 +131,7 @@ def load_templates(script_dir):
             print(f"加载模板成功: {path}")
     
     if not templates:
-        print("模板目录(jpg-1)下没有可用的图片")
+        print("模板目录(jpg-4)下没有可用的图片")
     return templates
 
 def find_image(target, template, threshold=0.7):
@@ -160,7 +160,7 @@ def send_click(hwnd, x, y):
 def main():
     """主函数：按模板顺序执行，循环往复"""
     # 1. 获取Chrome父窗口（你确认的类名和标题，无需修改）
-    hwnd_level1 = get_window_handle("Chrome_WidgetWin_1", "世界OL - 墨✨眠星 - Google Chrome")
+    hwnd_level1 = get_window_handle("Chrome_WidgetWin_1", "世界OL - 墨✨临渊 - Google Chrome")
     if hwnd_level1 == 0:
         return
 
@@ -187,8 +187,8 @@ def main():
     total_rounds = 0  # 已完成的完整轮数
 
     # 4. 配置参数
-    CLICK_THRESHOLD = 0.90
-    MAX_RETRIES_PER_TEMPLATE = 45  # 单个模板最大重试次数（快速匹配）
+    CLICK_THRESHOLD = 0.70
+    MAX_RETRIES_PER_TEMPLATE = 35  # 单个模板最大重试次数（快速匹配）
     RETRY_INTERVAL = 0.3  # 重试间隔（秒）
     AFTER_CLICK_DELAY = 0.3  # 点击后切换下一个模板的延迟
 
