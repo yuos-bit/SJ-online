@@ -187,7 +187,7 @@ def main():
     total_rounds = 0  # 已完成的完整轮数
 
     # 4. 配置参数
-    CLICK_THRESHOLD = 0.90
+    CLICK_THRESHOLD = 0.70
     MAX_RETRIES_PER_TEMPLATE = 45  # 单个模板最大重试次数（快速匹配）
     RETRY_INTERVAL = 0.3  # 重试间隔（秒）
     AFTER_CLICK_DELAY = 0.3  # 点击后切换下一个模板的延迟
