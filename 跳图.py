@@ -122,13 +122,13 @@ def send_click(hwnd, x, y):
 
 def main():
     """主函数：仅向第一层子窗口发送点击"""
-    # 1. 顶层父窗口：Qt5156QWindowIcon / MuMu安卓设备
-    hwnd_level1 = get_window_handle("Qt5156QWindowIcon", "MuMu安卓设备")
+    # 1. 顶层父窗口：LDPlayerMainFrame / 王惊梦
+    hwnd_level1 = get_window_handle("LDPlayerMainFrame", "王惊梦")
     if hwnd_level1 == 0:
         return
 
-    # 2. 第一层子窗口：Qt5156QWindowIcon / MuMuNxDevice（仅向该窗口发送点击）
-    hwnd_target = get_child_window(hwnd_level1, "Qt5156QWindowIcon", "MuMuNxDevice")
+    # 2. 第一层子窗口：RenderWindow / TheRender（仅向该窗口发送点击）
+    hwnd_target = get_child_window(hwnd_level1, "RenderWindow", "TheRender")
     if hwnd_target is None:
         return
 
