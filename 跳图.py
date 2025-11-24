@@ -138,7 +138,7 @@ def main():
     if not templates:
         return
 
-    CLICK_THRESHOLD = 0.90  # 匹配置信度阈值
+    CLICK_THRESHOLD = 0.95  # 匹配置信度阈值
     print("\n开始检测，仅向第一层子窗口发送点击...")
     print("按 Q 键结束脚本")
 
