@@ -110,19 +110,19 @@ def send_click_to_all(windows, coords):
 
 def main():
     # 1. 获取三层窗口句柄
-    # 最外层窗口：Qt5156QWindowIcon / MuMu安卓设备
-    hwnd_outer = get_window_handle("Qt5156QWindowIcon", "MuMu安卓设备")
+    # 最外层窗口：LDPlayerMainFrame / 墨族
+    hwnd_outer = get_window_handle("LDPlayerMainFrame", "墨族")
     if hwnd_outer == 0:
         return
 
-    # 中间层窗口：Qt5156QWindowIcon / MuMuNxDevice（作为最外层的子窗口）
-    hwnd_mid = get_child_window(hwnd_outer, "Qt5156QWindowIcon", "MuMuNxDevice")
+    # 中间层窗口：LDPlayerMainFrame / MuMuNxDevice（作为最外层的子窗口）
+    hwnd_mid = get_child_window(hwnd_outer, "RenderWindow", "TheRender")
     if hwnd_mid is None:
-        print("未找到中间层窗口: Qt5156QWindowIcon / MuMuNxDevice")
+        print("未找到中间层窗口: LDPlayerMainFrame / MuMuNxDevice")
         return
 
     # 最内层窗口：nemuwin / nemudisplay（作为中间层的子窗口）
-    hwnd_inner = get_child_window(hwnd_mid, "nemuwin", "nemudisplay")
+    hwnd_inner = get_child_window(hwnd_mid, "subWin", "sub")
     if hwnd_inner is None:
         print("未找到最内层窗口: nemuwin / nemudisplay")
         return
@@ -136,67 +136,135 @@ def main():
         return
 
     # 3. 配置参数
-    CLICK_THRESHOLD = 0.5  # 匹配置信度阈值
+    CLICK_THRESHOLD = 0.70  # 匹配置信度阈值
     MAX_ROUNDS = 120  # 最大循环轮数
     current_index = 0  # 当前模板索引（从0开始）
     total_templates = len(templates)
     rounds = 0  # 已完成轮数
+    RETRY_INTERVAL = 0.005  # 5毫秒重试间隔
+    MAX_RETRY_COUNT = 60    # 单张图基础重试次数
+    NEXT_IMG_TIMEOUT = 2.0  # 切换下一张图的超时时间（秒）
+    REPEAT_CLICK_MAX = 3    # 超时后重复点击当前图的最大次数
 
     print("开始按顺序点击模板，按 Q 键结束...")
     print(f"总模板数: {total_templates}，最大轮数: {MAX_ROUNDS}")
+    print(f"基础重试配置: 间隔{RETRY_INTERVAL*1000}ms，最多{MAX_RETRY_COUNT}次")
+    print(f"超时重试配置: 下一张识别超时{NEXT_IMG_TIMEOUT}秒则重复点击当前图，最多{REPEAT_CLICK_MAX}次")
 
     # 窗口列表（三层）
     window_handles = [hwnd_outer, hwnd_mid, hwnd_inner]
+    # 记录当前图最后一次点击的信息
+    last_click_info = {
+        "index": -1,
+        "coords": None,
+        "time": 0.0,
+        "repeat_count": 0
+    }
 
     while rounds < MAX_ROUNDS:
         if keyboard.is_pressed('q'):
             print("检测到 Q 键，脚本已结束。")
             break
 
-        # 截取最外层窗口图像（用于识别）
-        img, (outer_left, outer_top) = window_screenshot(hwnd_outer)
         # 获取当前需要匹配的模板
-        name, template = templates[current_index]
+        current_name, current_template = templates[current_index]
+        found = False
+        retry_count = 0
+        # 记录本轮识别的开始时间（用于超时判断）
+        round_start_time = time.time()
 
-        # 匹配当前模板
-        pt, _, _, score = find_image(img, template, CLICK_THRESHOLD)
-        if pt and score >= CLICK_THRESHOLD:
-            # 计算目标点在屏幕上的绝对坐标（基于最外层窗口位置）
-            screen_x = outer_left + pt[0]
-            screen_y = outer_top + pt[1]
+        # 第一步：基础重试逻辑（最多60次，每次5毫秒）
+        while retry_count < MAX_RETRY_COUNT:
+            if keyboard.is_pressed('q'):
+                print("检测到 Q 键，脚本已结束。")
+                return
 
-            # 计算每个窗口的客户区坐标（关键：将屏幕坐标转换为各窗口的内部坐标）
-            coords = []
-            for hwnd in window_handles:
-                client_x, client_y = win32gui.ScreenToClient(hwnd, (screen_x, screen_y))
-                coords.append((client_x, client_y))
-
-            # 输出点击信息
-            print(f"找到目标[{current_index+1}/{total_templates}]: {name}")
-            print(f"  置信度: {score:.2f}，屏幕坐标: ({screen_x}, {screen_y})")
-            print(f"  各窗口客户区坐标: {coords}")
+            # 截取最外层窗口图像（用于识别）
+            img, (outer_left, outer_top) = window_screenshot(hwnd_outer)
             
-            # 识别到后延迟0.4秒再点击
-            print("  延迟0.4秒后执行点击...")
-            time.sleep(0.4)
+            # 匹配当前模板
+            pt, _, _, score = find_image(img, current_template, CLICK_THRESHOLD)
+            if pt and score >= CLICK_THRESHOLD:
+                # 计算目标点坐标
+                screen_x = outer_left + pt[0]
+                screen_y = outer_top + pt[1]
+                coords = []
+                for hwnd in window_handles:
+                    client_x, client_y = win32gui.ScreenToClient(hwnd, (screen_x, screen_y))
+                    coords.append((client_x, client_y))
 
-            # 向三层窗口同时发送点击
-            send_click_to_all(window_handles, coords)
+                # 输出点击信息
+                print(f"找到目标[{current_index+1}/{total_templates}]: {current_name}")
+                print(f"  置信度: {score:.2f}，屏幕坐标: ({screen_x}, {screen_y})")
+                print(f"  各窗口客户区坐标: {coords}")
+                
+                # 执行点击
+                print("  执行点击...")
+                send_click_to_all(window_handles, coords)
 
-            # 切换到下一个模板
+                # 更新最后一次点击信息
+                last_click_info.update({
+                    "index": current_index,
+                    "coords": coords,
+                    "time": time.time(),
+                    "repeat_count": 0
+                })
+
+                # 切换到下一个模板
+                if current_index == total_templates - 1:
+                    rounds += 1
+                    current_index = 0
+                    print(f"—— 完成第 {rounds}/{MAX_ROUNDS} 轮 ——")
+                else:
+                    current_index += 1
+
+                # 点击后保留0.5秒延迟
+                time.sleep(0.5)
+                found = True
+                break
+            else:
+                # 未找到，检查是否触发超时重试策略
+                if (last_click_info["index"] == current_index and 
+                    last_click_info["coords"] is not None and
+                    time.time() - last_click_info["time"] > NEXT_IMG_TIMEOUT and
+                    last_click_info["repeat_count"] < REPEAT_CLICK_MAX):
+                    
+                    # 触发超时重复点击
+                    last_click_info["repeat_count"] += 1
+                    last_click_info["time"] = time.time()  # 更新重复点击时间
+                    print(f"\n⚠️  识别下一张图超时{NEXT_IMG_TIMEOUT}秒，重复点击当前图[{current_index+1}/{total_templates}]")
+                    print(f"  重复点击次数: {last_click_info['repeat_count']}/{REPEAT_CLICK_MAX}")
+                    print(f"  重复点击坐标: {last_click_info['coords']}")
+                    send_click_to_all(window_handles, last_click_info["coords"])
+                    # 重复点击后短暂延迟
+                    time.sleep(0.3)
+                    # 重置基础重试计数，重新开始识别当前图
+                    retry_count = 0
+                    continue
+
+                # 基础重试：等待5毫秒后重试
+                retry_count += 1
+                time.sleep(RETRY_INTERVAL)
+        
+        # 第二步：基础重试失败后的处理
+        if not found:
+            # 检查是否已达到重复点击上限
+            if (last_click_info["index"] == current_index and 
+                last_click_info["repeat_count"] >= REPEAT_CLICK_MAX):
+                print(f"\n❌ 当前图[{current_index+1}/{total_templates}]重复点击{REPEAT_CLICK_MAX}次仍无响应，强制切换下一张")
+                last_click_info["repeat_count"] = 0  # 重置重复计数
+            
+            # 正常切换下一张图
+            print(f"目标[{current_index+1}/{total_templates}]: {current_name} 重试{MAX_RETRY_COUNT}次仍未找到，切换下一张")
             if current_index == total_templates - 1:
-                # 完成一轮，重置索引并计数
                 rounds += 1
                 current_index = 0
-                print(f"—— 完成第 {rounds}/{MAX_ROUNDS} 轮 ——")
+                print(f"—— 完成第 {rounds}/{MAX_ROUNDS} 轮（部分目标未识别）——")
             else:
                 current_index += 1
-
-            # 点击后可根据需要保留延迟（避免操作过快），此处保留0.5秒
-            time.sleep(0.5)
-        else:
-            # 未找到当前模板，快速重试
-            time.sleep(0.1)
+            # 重置最后点击信息（切换图后）
+            last_click_info["index"] = -1
+            last_click_info["coords"] = None
 
     if rounds >= MAX_ROUNDS:
         print("已达到最大轮数，脚本结束。")
