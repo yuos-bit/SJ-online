@@ -63,9 +63,9 @@ def window_screenshot(hwnd):
 
 def load_templates(script_dir):
     """按文件名数字顺序加载模板（如1.jpg、2.jpg...）"""
-    jpg_dir = os.path.join(script_dir, "jpg1")
+    jpg_dir = os.path.join(script_dir, "jpg3")
     if not os.path.exists(jpg_dir):
-        print(f"未找到 jpg1 目录: {jpg_dir}")
+        print(f"未找到 jpg3 目录: {jpg_dir}")
         return []
     # 按文件名中的数字排序（支持1.jpg < 2.jpg < 10.jpg）
     jpg_files = sorted(
@@ -80,7 +80,7 @@ def load_templates(script_dir):
             templates.append((f, img))
             print(f"加载模板成功: {path}")
     if not templates:
-        print("jpg1目录下没有可用的模板图片")
+        print("jpg3目录下没有可用的模板图片")
     return templates
 
 def find_image(target, template, threshold=0.7):
