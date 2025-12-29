@@ -63,9 +63,9 @@ def window_screenshot(hwnd):
 
 def load_templates(script_dir):
     """按文件名数字顺序加载模板（如1.jpg、2.jpg...）"""
-    jpg_dir = os.path.join(script_dir, "jpg3")
+    jpg_dir = os.path.join(script_dir, "jpg7")
     if not os.path.exists(jpg_dir):
-        print(f"未找到 jpg3 目录: {jpg_dir}")
+        print(f"未找到 jpg7 目录: {jpg_dir}")
         return []
     # 按文件名中的数字排序（支持1.jpg < 2.jpg < 10.jpg）
     jpg_files = sorted(
@@ -80,7 +80,7 @@ def load_templates(script_dir):
             templates.append((f, img))
             print(f"加载模板成功: {path}")
     if not templates:
-        print("jpg3目录下没有可用的模板图片")
+        print("jpg7目录下没有可用的模板图片")
     return templates
 
 def find_image(target, template, threshold=0.7):
@@ -136,15 +136,15 @@ def main():
         return
 
     # 3. 配置参数
-    CLICK_THRESHOLD = 0.80  # 匹配置信度阈值
-    MAX_ROUNDS = 360  # 最大循环轮数
+    CLICK_THRESHOLD = 0.70  # 匹配置信度阈值
+    MAX_ROUNDS = 9999  # 最大循环轮数
     current_index = 0  # 当前模板索引（从0开始）
     total_templates = len(templates)
     rounds = 0  # 已完成轮数
     RETRY_INTERVAL = 0.005  # 5毫秒重试间隔
-    MAX_RETRY_COUNT = 100    # 单张图基础重试次数
-    NEXT_IMG_TIMEOUT = 0.2  # 切换下一张图的超时时间（秒）
-    REPEAT_CLICK_MAX = 3    # 超时后重复点击当前图的最大次数
+    MAX_RETRY_COUNT = 2    # 单张图基础重试次数
+    NEXT_IMG_TIMEOUT = 0.5  # 切换下一张图的超时时间（秒）
+    REPEAT_CLICK_MAX = 2  # 超时后重复点击当前图的最大次数
 
     print("开始按顺序点击模板，按 Q 键结束...")
     print(f"总模板数: {total_templates}，最大轮数: {MAX_ROUNDS}")
@@ -218,8 +218,8 @@ def main():
                 else:
                     current_index += 1
 
-                # 点击后保留0.1秒延迟
-                time.sleep(0.1)
+                # 点击后保留0.5秒延迟
+                time.sleep(0.5)
                 found = True
                 break
             else:
