@@ -23,7 +23,7 @@ pip install --upgrade pywin32
 
 ## 视频说明
 
-[![B站视频封面](https://i0.hdslb.com/bfs/archive/25b5ede65aaa2e9f1db153eda8fc23e9d1623700.jpg)](https://www.bilibili.com/video/BV1y2ikBmE3C)
+[![B站视频封面](https://i0.hdslb.com/bfs/archive/25b5ede65aaa2e9f1db153eda8fc23e9d1623700.jpg@672w_378h_1c.webp)](https://www.bilibili.com/video/BV1y2ikBmE3C)
 
 ## 具体使用方法
 
