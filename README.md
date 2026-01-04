@@ -23,18 +23,7 @@ pip install --upgrade pywin32
 
 ## 视频说明
 
-<div style="width: 100%; max-width: 1280px; margin: 0 auto;">
-  <iframe 
-    src="//player.bilibili.com/player.html?isOutside=true&aid=115834429117007&bvid=BV1y2ikBmE3C&cid=35174944688&p=1" 
-    scrolling="no" 
-    border="0" 
-    frameborder="no" 
-    framespacing="0" 
-    allowfullscreen="true"
-    style="width: 100%; height: 720px; display: block;"
-  >
-  </iframe>
-</div>
+[![B站视频封面](//i0.hdslb.com/bfs/archive/25b5ede65aaa2e9f1db153eda8fc23e9d1623700.jpg)](https://www.bilibili.com/video/BV1y2ikBmE3C)
 
 ## 具体使用方法
 
