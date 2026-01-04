@@ -21,7 +21,22 @@ pip install opencv-contrib-python numpy keyboard pywin32 opencv-python pyautogui
 pip install --upgrade pywin32
 ```
 
-## 使用方法
+## 视频说明
+
+<div style="width: 100%; max-width: 1280px; margin: 0 auto;">
+  <iframe 
+    src="//player.bilibili.com/player.html?isOutside=true&aid=115834429117007&bvid=BV1y2ikBmE3C&cid=35174944688&p=1" 
+    scrolling="no" 
+    border="0" 
+    frameborder="no" 
+    framespacing="0" 
+    allowfullscreen="true"
+    style="width: 100%; height: 720px; display: block;"
+  >
+  </iframe>
+</div>
+
+## 具体使用方法
 
 * 1.安装好[python3](https://pan.yuos.top/s/46fN?password=61mcmz&path=%2Fwindows%2F%E8%BD%AF%E4%BB%B6%E5%A4%A7%E5%85%A8%2FPython3)
 * 2.将你需要遍历的图标截图放到对应目录下即可（仅限自动挂机&跳图&用药.py），格式为.jpg，图片名字可为英文或英文+数字
