@@ -60,9 +60,9 @@ def window_screenshot(hwnd):
     return cv2.cvtColor(img, cv2.COLOR_BGRA2BGR), (left, top)
 
 def load_templates(script_dir):
-    jpg_dir = os.path.join(script_dir, "jpg-2")  # 按顺序读取 jpg-2 下的图片
+    jpg_dir = os.path.join(script_dir, "jpg5")  # 按顺序读取 jpg5 下的图片
     if not os.path.exists(jpg_dir):
-        print(f"未找到 jpg-2 目录: {jpg_dir}")
+        print(f"未找到 jpg5 目录: {jpg_dir}")
         return []
     jpg_files = sorted(
         [f for f in os.listdir(jpg_dir) if f.lower().endswith(".jpg")],
@@ -76,7 +76,7 @@ def load_templates(script_dir):
             templates.append((f, img))
             print(f"加载模板成功: {path}")
     if not templates:
-        print("jpg-2目录下没有可用的模板图片")
+        print("jpg5目录下没有可用的模板图片")
     return templates
 
 def find_image(target, template, threshold=0.7):
