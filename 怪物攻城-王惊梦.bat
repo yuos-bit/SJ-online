@@ -1,0 +1,5 @@
+@echo off
+cd D:\github\SJ-online
+d:
+python π÷ŒÔπ•≥«.py
+pause
