@@ -184,7 +184,7 @@ def main():
     if not templates:
         return
 
-    CLICK_THRESHOLD = 0.75
+    CLICK_THRESHOLD = 0.80
 
     print("开始多窗口后台检测（不会抢鼠标）")
     print("按 Q 键结束脚本")
