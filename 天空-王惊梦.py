@@ -146,7 +146,7 @@ def main():
     NEXT_IMG_TIMEOUT = 1  # 切换下一张图的超时时间（秒）
     REPEAT_CLICK_MAX = 3  # 超时后重复点击当前图的最大次数
 
-    print("开始按顺序点击模板，按 Q 键结束...")
+    print("开始按顺序点击模板，按 F8 键结束...")
     print(f"总模板数: {total_templates}，最大轮数: {MAX_ROUNDS}")
     print(f"基础重试配置: 间隔{RETRY_INTERVAL*1000}ms，最多{MAX_RETRY_COUNT}次")
     print(f"超时重试配置: 下一张识别超时{NEXT_IMG_TIMEOUT}秒则重复点击当前图，最多{REPEAT_CLICK_MAX}次")
@@ -162,8 +162,8 @@ def main():
     }
 
     while rounds < MAX_ROUNDS:
-        if keyboard.is_pressed('q'):
-            print("检测到 Q 键，脚本已结束。")
+        if keyboard.is_pressed('f8'):
+            print("检测到 F8 键，脚本已结束。")
             break
 
         # 获取当前需要匹配的模板
@@ -175,8 +175,8 @@ def main():
 
         # 第一步：基础重试逻辑（最多60次，每次5毫秒）
         while retry_count < MAX_RETRY_COUNT:
-            if keyboard.is_pressed('q'):
-                print("检测到 Q 键，脚本已结束。")
+            if keyboard.is_pressed('f8'):
+                print("检测到 F8 键，脚本已结束。")
                 return
 
             # 截取最外层窗口图像（用于识别）

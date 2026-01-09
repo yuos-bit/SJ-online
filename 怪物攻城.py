@@ -137,7 +137,7 @@ def main():
 
     # 3. 配置参数
     CLICK_THRESHOLD = 0.70  # 匹配置信度阈值
-    MAX_ROUNDS = 9999  # 最大循环轮数
+    MAX_ROUNDS = 99999  # 最大循环轮数
     current_index = 0  # 当前模板索引（从0开始）
     total_templates = len(templates)
     rounds = 0  # 已完成轮数
