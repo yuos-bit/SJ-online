@@ -136,7 +136,7 @@ def main():
         return
 
     # 3. 配置参数
-    CLICK_THRESHOLD = 0.70  # 匹配置信度阈值
+    CLICK_THRESHOLD = 0.75  # 匹配置信度阈值
     MAX_ROUNDS = 360  # 最大循环轮数
     current_index = 0  # 当前模板索引（从0开始）
     total_templates = len(templates)
