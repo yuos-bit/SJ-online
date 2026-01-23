@@ -145,6 +145,12 @@ def main():
     MAX_RETRY_COUNT = 2    # 单张图基础重试次数
     NEXT_IMG_TIMEOUT = 0.05  # 切换下一张图的超时时间（秒）
     REPEAT_CLICK_MAX = 1    # 超时后重复点击当前图的最大次数
+=======
+    RETRY_INTERVAL = 0.005  # 5毫秒重试间隔
+    MAX_RETRY_COUNT = 5    # 单张图基础重试次数
+    NEXT_IMG_TIMEOUT = 1.0  # 切换下一张图的超时时间（秒）
+    REPEAT_CLICK_MAX = 2   # 超时后重复点击当前图的最大次数
+>>>>>>> 232a96962d3f3bb872231dc632bfce7a6244b441
 
     print("开始按顺序点击模板，按 Q 键结束...")
     print(f"总模板数: {total_templates}，最大轮数: {MAX_ROUNDS}")
