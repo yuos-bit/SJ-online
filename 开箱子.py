@@ -141,6 +141,7 @@ def main():
     current_index = 0  # 当前模板索引（从0开始）
     total_templates = len(templates)
     rounds = 0  # 已完成轮数
+<<<<<<< HEAD
     RETRY_INTERVAL = 0.0005  # 5毫秒重试间隔
     MAX_RETRY_COUNT = 2    # 单张图基础重试次数
     NEXT_IMG_TIMEOUT = 0.05  # 切换下一张图的超时时间（秒）
