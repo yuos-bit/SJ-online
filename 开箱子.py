@@ -111,7 +111,7 @@ def send_click_to_all(windows, coords):
 def main():
     # 1. 获取三层窗口句柄
     # 最外层窗口：LDPlayerMainFrame / 墨族
-    hwnd_outer = get_window_handle("LDPlayerMainFrame", "王惊梦")
+    hwnd_outer = get_window_handle("LDPlayerMainFrame", "墨族")
     if hwnd_outer == 0:
         return
 
@@ -136,8 +136,8 @@ def main():
         return
 
     # 3. 配置参数
-    CLICK_THRESHOLD = 0.75  # 匹配置信度阈值
-    MAX_ROUNDS = 999  # 最大循环轮数
+    CLICK_THRESHOLD = 0.90  # 匹配置信度阈值
+    MAX_ROUNDS = 99999  # 最大循环轮数
     current_index = 0  # 当前模板索引（从0开始）
     total_templates = len(templates)
     rounds = 0  # 已完成轮数
