@@ -63,9 +63,9 @@ def window_screenshot(hwnd):
 
 def load_templates(script_dir):
     """按文件名数字顺序加载模板（如1.jpg、2.jpg...）"""
-    jpg_dir = os.path.join(script_dir, "jpg9")
+    jpg_dir = os.path.join(script_dir, "jpg16")
     if not os.path.exists(jpg_dir):
-        print(f"未找到 jpg9 目录: {jpg_dir}")
+        print(f"未找到 jpg16 目录: {jpg_dir}")
         return []
     # 按文件名中的数字排序（支持1.jpg < 2.jpg < 10.jpg）
     jpg_files = sorted(
@@ -80,7 +80,7 @@ def load_templates(script_dir):
             templates.append((f, img))
             print(f"加载模板成功: {path}")
     if not templates:
-        print("jpg9目录下没有可用的模板图片")
+        print("jpg16目录下没有可用的模板图片")
     return templates
 
 def find_image(target, template, threshold=0.7):
@@ -110,8 +110,8 @@ def send_click_to_all(windows, coords):
 
 def main():
     # 1. 获取三层窗口句柄
-    # 最外层窗口：LDPlayerMainFrame / 墨族
-    hwnd_outer = get_window_handle("LDPlayerMainFrame", "墨族")
+    # 最外层窗口：LDPlayerMainFrame / 王惊梦
+    hwnd_outer = get_window_handle("LDPlayerMainFrame", "王惊梦")
     if hwnd_outer == 0:
         return
 
