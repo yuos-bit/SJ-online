@@ -137,14 +137,14 @@ def main():
 
     # 3. 配置参数
     CLICK_THRESHOLD = 0.70  # 匹配置信度阈值
-    MAX_ROUNDS = 9999999 #最大循环轮数
+    MAX_ROUNDS = 9999999999999999 #最大循环轮数
     current_index = 0  # 当前模板索引（从0开始）
     total_templates = len(templates)
     rounds = 0  # 已完成轮数
-    RETRY_INTERVAL = 0.5  # 5毫秒重试间隔
-    MAX_RETRY_COUNT = 2    # 单张图基础重试次数
-    NEXT_IMG_TIMEOUT = 1  # 切换下一张图的超时时间（秒）
-    REPEAT_CLICK_MAX = 3  # 超时后重复点击当前图的最大次数
+    RETRY_INTERVAL = 0.1  # 5毫秒重试间隔
+    MAX_RETRY_COUNT = 1   # 单张图基础重试次数
+    NEXT_IMG_TIMEOUT = 0.000001  # 切换下一张图的超时时间（秒）
+    REPEAT_CLICK_MAX = 1  # 超时后重复点击当前图的最大次数
 
     print("开始按顺序点击模板，按 F8 键结束...")
     print(f"总模板数: {total_templates}，最大轮数: {MAX_ROUNDS}")
