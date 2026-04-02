@@ -110,8 +110,8 @@ def send_click_to_all(windows, coords):
 
 def main():
     # 1. 获取三层窗口句柄
-    # 最外层窗口：LDPlayerMainFrame / 墨族
-    hwnd_outer = get_window_handle("LDPlayerMainFrame", "墨族")
+    # 最外层窗口：LDPlayerMainFrame / 长生天尊
+    hwnd_outer = get_window_handle("LDPlayerMainFrame", "长生天尊")
     if hwnd_outer == 0:
         return
 
