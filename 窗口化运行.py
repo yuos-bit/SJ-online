@@ -1,211 +1,196 @@
 import sys
+import os
+import cv2
+import numpy as np
+
+# 重新启用 GPU 加速，确保加速脚本有效
+if "QTWEBENGINE_CHROMIUM_FLAGS" in os.environ:
+    del os.environ["QTWEBENGINE_CHROMIUM_FLAGS"]
+
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QPushButton, QStackedWidget,
     QHBoxLayout, QSizePolicy
 )
 from PyQt6.QtWebEngineWidgets import QWebEngineView
-from PyQt6.QtCore import QUrl
+from PyQt6.QtCore import QUrl, QTimer, QPointF, Qt
+from PyQt6.QtGui import QMouseEvent, QPixmap
 
 GAME_URL = "https://sjh5cdn2.good321.net/resgood/index.html?subchannel=merchant1"
 WINDOW_COUNT = 5
-
+TEMPLATE_PATH = "./image/guaji.png" 
 
 class GameWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("世界OL多开版")
-        self.resize(400, 750)
+        self.setWindowTitle("世界OL多开版 - GPU加速修复版")
+        self.resize(480, 850)
 
-        # 主布局
+        self.speed_states = [False] * WINDOW_COUNT
+        self.skip_states = [False] * WINDOW_COUNT
+        
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.setSpacing(0)
-
-        # Web区域
         self.stack = QStackedWidget()
-        self.stack.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.layout.addWidget(self.stack, stretch=8)
 
-        # 第一排按钮区域（窗口切换）
         self.window_button_layout = QHBoxLayout()
-        self.window_button_layout.setContentsMargins(5, 5, 5, 0)
-        self.window_button_layout.setSpacing(5)
-        self.layout.addLayout(self.window_button_layout, stretch=0)
-
-        # 第二排按钮区域（加速 + 自动跳过）
+        self.layout.addLayout(self.window_button_layout)
         self.action_button_layout = QHBoxLayout()
-        self.action_button_layout.setContentsMargins(5, 5, 5, 5)
-        self.action_button_layout.setSpacing(5)
-        self.layout.addLayout(self.action_button_layout, stretch=0)
+        self.layout.addLayout(self.action_button_layout)
 
         self.web_views = [None] * WINDOW_COUNT
         self.current_index = 0
 
-        # ===== 第一排窗口按钮 =====
         for i in range(WINDOW_COUNT):
             btn = QPushButton(f"窗口 {i+1}")
-            btn.setMinimumHeight(60)
+            btn.setMinimumHeight(50)
             btn.clicked.connect(lambda checked, idx=i: self.switch_window(idx))
             self.window_button_layout.addWidget(btn)
 
-        # ===== 第二排操作按钮 =====
-        # 加速按钮
-        self.speed_btn = QPushButton("🚀 5倍加速")
-        self.speed_btn.setMinimumHeight(40)
+        self.speed_btn = QPushButton("加速开启")
         self.speed_btn.setCheckable(True)
         self.speed_btn.clicked.connect(self.toggle_speed)
         self.action_button_layout.addWidget(self.speed_btn)
 
-        # 自动跳过按钮
-        self.auto_skip_btn = QPushButton("🤖 自动跳过")
-        self.auto_skip_btn.setMinimumHeight(40)
+        self.auto_skip_btn = QPushButton("自动挂机")
         self.auto_skip_btn.setCheckable(True)
         self.auto_skip_btn.clicked.connect(self.toggle_auto_skip)
         self.action_button_layout.addWidget(self.auto_skip_btn)
 
-        # 初始化第一个窗口
+        self.scan_timer = QTimer()
+        self.scan_timer.timeout.connect(self.scan_for_button)
+        self.scan_timer.start(2000) 
+
         self.switch_window(0)
 
-    # ========================
-    # 窗口切换（懒加载 + 状态保留）
-    # ========================
+    def update_button_ui(self):
+        is_speeding = self.speed_states[self.current_index]
+        self.speed_btn.setChecked(is_speeding)
+        self.speed_btn.setText("已开启5倍加速" if is_speeding else "加速开启")
+        
+        is_skipping = self.skip_states[self.current_index]
+        self.auto_skip_btn.setChecked(is_skipping)
+        self.auto_skip_btn.setText("自动挂机中" if is_skipping else "自动挂机")
+
     def switch_window(self, index):
         if self.web_views[self.current_index]:
             self.web_views[self.current_index].hide()
-
         if not self.web_views[index]:
             web = QWebEngineView()
             web.setUrl(QUrl(GAME_URL))
-            web.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
             self.stack.addWidget(web)
             self.web_views[index] = web
-
-        self.web_views[index].show()
-        self.stack.setCurrentWidget(self.web_views[index])
         self.current_index = index
+        self.stack.setCurrentWidget(self.web_views[index])
+        self.web_views[index].show()
+        self.update_button_ui()
 
-    # ========================
-    # 🚀 5倍加速（可恢复）
-    # ========================
     def toggle_speed(self):
         web = self.web_views[self.current_index]
-        if not web:
-            return
-
-        if self.speed_btn.isChecked():
-            js_code = """
-            (function() {
-                if (window._speedHackActive) return;
-                window._speedHackActive = true;
-
-                const SPEED = 5;
-
-                window._originalSetTimeout = window.setTimeout;
-                window._originalSetInterval = window.setInterval;
-                window._originalRAF = window.requestAnimationFrame;
-                window._originalDateNow = Date.now;
-
-                window.setTimeout = function(fn, t){
-                    return window._originalSetTimeout(fn, t / SPEED);
+        if not web: return
+        is_active = self.speed_btn.isChecked()
+        self.speed_states[self.current_index] = is_active
+        
+        if is_active:
+            # 使用更强力的定时器加速逻辑
+            js = """
+            (function(){
+                if(window._speedActive) return;
+                window._speedActive = true;
+                const ratio = 5;
+                const _st = window.setTimeout;
+                const _si = window.setInterval;
+                window.setTimeout = (f, d) => _st(f, d/ratio);
+                window.setInterval = (f, d) => _si(f, d/ratio);
+                // 针对某些 H5 游戏的 rAF 加速
+                const _rAF = window.requestAnimationFrame;
+                let lastTime = 0;
+                window.requestAnimationFrame = (cb) => {
+                    return _rAF((time) => cb(time * ratio));
                 };
-
-                window.setInterval = function(fn, t){
-                    return window._originalSetInterval(fn, t / SPEED);
-                };
-
-                window.requestAnimationFrame = function(cb){
-                    return window._originalRAF(function(time){
-                        cb(time * SPEED);
-                    });
-                };
-
-                const start = window._originalDateNow();
-                Date.now = function(){
-                    return start + (window._originalDateNow() - start) * SPEED;
-                };
-
-                console.log("🚀 5倍加速开启");
+                console.log("🚀 5倍加速已在当前窗口注入");
             })();
             """
         else:
-            js_code = """
-            (function() {
-                if (!window._speedHackActive) return;
+            js = "location.reload();"
+        web.page().runJavaScript(js)
+        self.update_button_ui()
 
-                window.setTimeout = window._originalSetTimeout;
-                window.setInterval = window._originalSetInterval;
-                window.requestAnimationFrame = window._originalRAF;
-                Date.now = window._originalDateNow;
-
-                window._speedHackActive = false;
-
-                console.log("✅ 已恢复正常速度");
-            })();
-            """
-        web.page().runJavaScript(js_code)
-
-    # ========================
-    # 🤖 自动点击“跳过”
-    # ========================
     def toggle_auto_skip(self):
-        web = self.web_views[self.current_index]
-        if not web:
-            return
+        self.skip_states[self.current_index] = self.auto_skip_btn.isChecked()
+        self.update_button_ui()
 
-        if self.auto_skip_btn.isChecked():
-            js_code = """
-            (function() {
-                if (window._autoSkip) return;
+    def scan_for_button(self):
+        for i in range(WINDOW_COUNT):
+            if self.skip_states[i] and self.web_views[i]:
+                self.perform_image_recognition(i, self.web_views[i])
 
-                window._autoSkip = setInterval(function(){
+    def perform_image_recognition(self, idx, web_view):
+        try:
+            # 改进的截图方式：使用 grab() 但通过 render 保证兼容性
+            pixmap = QPixmap(web_view.size())
+            web_view.render(pixmap)
+            image = pixmap.toImage().convertToFormat(image.Format.Format_RGBA8888)
+            
+            width, height = image.width(), image.height()
+            ptr = image.bits()
+            ptr.setsize(image.sizeInBytes())
+            arr = np.frombuffer(ptr, np.uint8).reshape((height, width, 4))
+            screen_img = cv2.cvtColor(arr, cv2.COLOR_RGBA2BGR)
 
-                    let nodes = Array.from(document.querySelectorAll("*"));
+            template = cv2.imread(TEMPLATE_PATH)
+            if template is None: return
 
-                    for (let n of nodes) {
-                        if (!n.innerText) continue;
+            res = cv2.matchTemplate(screen_img, template, cv2.TM_CCOEFF_NORMED)
+            _, max_val, _, max_loc = cv2.minMaxLoc(res)
 
-                        if (n.innerText.includes("跳过")) {
-                            let rect = n.getBoundingClientRect();
+            if max_val >= 0.8:
+                h, w = template.shape[:2]
+                center_x = float(max_loc[0] + w / 2)
+                center_y = float(max_loc[1] + h / 2)
+                
+                print(f"[窗口 {idx+1}] 匹配成功({max_val:.2f}) -> 执行单次点击并关闭挂机")
+                
+                # 执行点击
+                self.click_at(web_view, center_x, center_y)
+                
+                # 状态修改：点击成功后立即关闭挂机
+                self.skip_states[idx] = False
+                # 如果当前正在看这个窗口，刷新UI按钮状态
+                if idx == self.current_index:
+                    self.auto_skip_btn.setChecked(False)
+                    self.update_button_ui()
+                
+        except Exception as e:
+            print(f"识别异常: {e}")
 
-                            let x = rect.left + rect.width / 2;
-                            let y = rect.top - 10;
+    def click_at(self, web_view, x, y):
+        target = web_view.focusProxy()
+        # 关键修复：PyQt6 必须使用 QPointF
+        point = QPointF(x, y)
+        
+        no_mod = Qt.KeyboardModifier.NoModifier
+        
+        # 模拟按下
+        press_event = QMouseEvent(
+            QMouseEvent.Type.MouseButtonPress, 
+            point, 
+            Qt.MouseButton.LeftButton, 
+            Qt.MouseButton.LeftButton, 
+            no_mod
+        )
+        # 模拟抬起
+        release_event = QMouseEvent(
+            QMouseEvent.Type.MouseButtonRelease, 
+            point, 
+            Qt.MouseButton.LeftButton, 
+            Qt.MouseButton.LeftButton, 
+            no_mod
+        )
+        
+        QApplication.postEvent(target, press_event)
+        QTimer.singleShot(100, lambda: QApplication.postEvent(target, release_event))
 
-                            let el = document.elementFromPoint(x, y);
-                            if (!el) continue;
-
-                            let evt = new MouseEvent('click', {
-                                bubbles: true,
-                                cancelable: true,
-                                clientX: x,
-                                clientY: y
-                            });
-
-                            el.dispatchEvent(evt);
-
-                            console.log("🎯 点击跳过(偏移3px)");
-                            break;
-                        }
-                    }
-
-                }, 300);
-            })();
-            """
-        else:
-            js_code = """
-            (function() {
-                if (window._autoSkip) {
-                    clearInterval(window._autoSkip);
-                    window._autoSkip = null;
-                    console.log("⛔ 自动跳过停止");
-                }
-            })();
-            """
-        web.page().runJavaScript(js_code)
-
-
-# ========================
-# 入口
-# ========================
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = GameWindow()
