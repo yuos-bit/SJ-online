@@ -57,3 +57,9 @@ pip install --upgrade pywin32
 | 黑魔指环.py | jpg-4 |
 | 世界喊话.py | jpg-5 |
 | 开盒子.py | jpg-6 |
+
+## 窗口化运行
+
+```shell
+python -m pip install PyQt6 PyQt6-WebEngine
+```
