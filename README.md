@@ -9,3 +9,10 @@
 ```shell
 python -m pip install PyQt6 PyQt6-WebEngine opencv-python numpy
 ```
+
+## 打包成可执行单exe文件
+
+```shell
+pip install pyinstaller
+pyinstaller --noconfirm --onefile --windowed --add-data "image;image" --name "世界OL助手-墨商定制版" main.py
+```
