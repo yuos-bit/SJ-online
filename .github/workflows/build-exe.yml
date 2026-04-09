@@ -1,0 +1,102 @@
+# 自动打包 Windows 单文件 EXE 工作流
+# 基于 P3TERX 的 OpenWrt 编译脚本风格定制
+
+name: 构建 Windows 单文件发布版
+
+on:
+  repository_dispatch:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '发布版本号 (例如 v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+      use_upx:
+        description: '是否启用 UPX 压缩 (减小体积但可能被杀毒软件误报)'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  PYTHON_VERSION: '3.11'
+  PROJECT_NAME: '世界OL_多窗加速版'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: 检查源代码
+        uses: actions/checkout@v4
+
+      - name: 初始化 Python 环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: 安装打包工具与依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller PyQt5 opencv-python numpy
+          # 如果你有 requirements.txt，取消下面一行的注释
+          # pip install -r requirements.txt
+
+      - name: 下载并配置 UPX (可选)
+        if: github.event.inputs.use_upx == 'true'
+        run: |
+          choco install upx
+          echo "UPX_PATH=--upx-dir C:\ProgramData\chocolatey\bin" >> $GITHUB_ENV
+
+      - name: 执行 PyInstaller 打包
+        shell: pwsh
+        run: |
+          # 使用 ` 符号进行 Powershell 换行
+          # --noconfirm: 自动覆盖原有目录
+          # --onefile: 生成单文件
+          # --windowed: 无控制台窗口
+          # --add-data: 包含图片和图标资源 (Windows 分号隔离)
+          pyinstaller --noconfirm --onefile --windowed `
+            --icon="ico/icon.ico" `
+            --add-data "image;image" `
+            --add-data "ico;ico" `
+            --name "${{ env.PROJECT_NAME }}_${{ github.event.inputs.version }}" `
+            ${{ env.UPX_PATH }} `
+            "main.py"
+
+      - name: 整理成品文件
+        id: organize
+        shell: pwsh
+        run: |
+          mkdir release_dir
+          mv dist/*.exe release_dir/
+          echo "FIRMWARE=$((Get-Item release_dir).FullName)" >> $env:GITHUB_ENV
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: 创建 GitHub Release 标签
+        id: tag
+        if: steps.organize.outputs.status == 'success' && !cancelled()
+        shell: pwsh
+        run: |
+          $tag_name = "${{ github.event.inputs.version }}-$(Get-Date -Format 'yyyyMMdd-HHmm')"
+          echo "release_tag=$tag_name" >> $env:GITHUB_OUTPUT
+          "编译时间: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" > release.txt
+          "环境: Windows Latest / Python ${{ env.PYTHON_VERSION }}" >> release.txt
+          echo "status=success" >> $env:GITHUB_OUTPUT
+
+      - name: 上传 EXE 到 GitHub Releases
+        uses: softprops/action-gh-release@v2
+        if: steps.tag.outputs.status == 'success' && !cancelled()
+        with:
+          tag_name: ${{ steps.tag.outputs.release_tag }}
+          name: ${{ env.PROJECT_NAME }} ${{ github.event.inputs.version }}
+          body_path: release.txt
+          files: ${{ env.FIRMWARE }}/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 清理过期工作流
+        uses: Mattraks/delete-workflow-runs@main
+        with:
+          retain_days: 7
+          keep_minimum_runs: 3
