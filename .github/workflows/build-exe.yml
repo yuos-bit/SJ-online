@@ -38,9 +38,7 @@ jobs:
       - name: 安装打包工具与依赖
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller PyQt5 opencv-python numpy
-          # 如果你有 requirements.txt，取消下面一行的注释
-          # pip install -r requirements.txt
+          pip install -r requirements.txt
 
       - name: 下载并配置 UPX (可选)
         if: github.event.inputs.use_upx == 'true'
