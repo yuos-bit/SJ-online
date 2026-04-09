@@ -19,7 +19,7 @@ on:
 
 env:
   PYTHON_VERSION: '3.11'
-  PROJECT_NAME: '世界OL_多窗加速版'
+  PROJECT_NAME: '世界OL_墨商加速版'
 
 jobs:
   build:
