@@ -4,59 +4,69 @@ import cv2
 import numpy as np
 from pathlib import Path
 
-# 强制开启硬件加速
-os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--enable-gpu --num-raster-threads=4"
+# --- 核心配置：禁用 Chromium 的后台休眠限制 ---
+os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = (
+    "--enable-gpu "
+    "--num-raster-threads=4 "
+    "--disable-renderer-backgrounding "            # 关键：防止后台进程优先级降低
+    "--disable-background-timer-throttling "       # 关键：防止后台定时器变慢
+    "--disable-backgrounding-occluded-windows "     # 关键：防止窗口被遮挡时挂起
+)
 
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QPushButton, QStackedWidget, 
     QHBoxLayout, QSizePolicy
 )
 from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtWebEngineCore import QWebEngineProfile, QWebEnginePage
 from PyQt6.QtCore import QUrl, QTimer, QPointF, Qt
 from PyQt6.QtGui import QMouseEvent, QPixmap, QImage
 
-# --- 新增：兼容打包后的路径处理函数 ---
 def get_resource_path(relative_path):
     """ 获取资源绝对路径，兼容开发环境和 PyInstaller 打包后的环境 """
     if hasattr(sys, '_MEIPASS'):
-        # PyInstaller 打包后临时目录路径
         return os.path.join(sys._MEIPASS, relative_path)
-    # 当前开发环境路径
     return os.path.join(os.path.abspath("."), relative_path)
 
 GAME_URL = "https://sjh5cdn2.good321.net/resgood/index.html?subchannel=merchant1"
 WINDOW_COUNT = 5
 
-# --- 应用路径转换 ---
+# --- 资源路径 ---
 SILENCE_DIR = get_resource_path("image/Silence")
 GUAJI_IMG = get_resource_path("image/guaji.png")
-GUANBI_IMG = get_resource_path("image/guanbi.png")
 
 class GameWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("世界OL-墨商专供版")
+        self.setWindowTitle("世界OL-多窗独立挂机版")
         self.resize(480, 850)
 
         # 状态数据
         self.speed_states = [False] * WINDOW_COUNT
         self.skip_states = [False] * WINDOW_COUNT
-        self.cached_coords = [None] * WINDOW_COUNT # 核心：记录挂机按钮的坐标
+        self.cached_coords = [None] * WINDOW_COUNT 
 
         # UI 构建
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
+        
+        # 堆栈窗口用于切换
         self.stack = QStackedWidget()
         self.layout.addWidget(self.stack, stretch=8)
 
+        # 窗口切换按钮行
         self.window_button_layout = QHBoxLayout()
         self.layout.addLayout(self.window_button_layout)
+        
+        # 功能控制按钮行
         self.action_button_layout = QHBoxLayout()
         self.layout.addLayout(self.action_button_layout)
 
         self.web_views = [None] * WINDOW_COUNT
+        self.profiles = [None] * WINDOW_COUNT # 存储独立的 Profile
         self.current_index = 0
 
+        # 初始化窗口切换按钮
         for i in range(WINDOW_COUNT):
             btn = QPushButton(f"窗口 {i+1}")
             btn.setMinimumHeight(50)
@@ -75,37 +85,63 @@ class GameWindow(QWidget):
         self.auto_skip_btn.clicked.connect(self.toggle_auto_skip)
         self.action_button_layout.addWidget(self.auto_skip_btn)
 
-        # 核心定时器：每秒15次识别 Silence 文件夹
+        # 全局扫描定时器
         self.silence_timer = QTimer()
         self.silence_timer.timeout.connect(self.scan_silence_logic)
         self.is_scanning = False 
 
+        # 默认启动第一个窗口
         self.switch_window(0)
 
-    def update_button_ui(self):
-        is_skipping = self.skip_states[self.current_index]
-        self.auto_skip_btn.setChecked(is_skipping)
-        self.auto_skip_btn.setText("自动挂机中" if is_skipping else "自动挂机")
-        self.speed_btn.setChecked(self.speed_states[self.current_index])
-
     def switch_window(self, index):
-        if self.web_views[self.current_index]: self.web_views[self.current_index].hide()
+        # 隐藏旧窗口
+        if self.web_views[self.current_index]:
+            self.web_views[self.current_index].hide()
+            
+        # 如果目标窗口还没初始化，则创建独立环境
         if not self.web_views[index]:
+            # 1. 创建独立的 Profile (隔离 Cookie 和缓存)
+            # storage_name 相同会导致数据覆盖，这里每个窗口给一个独立 ID
+            profile_id = f"window_profile_{index}"
+            profile = QWebEngineProfile(profile_id, self)
+            
+            # 如果需要保存登录信息，取消下面两行的注释
+            # profile.setPersistentCookiesPolicy(QWebEngineProfile.PersistentCookiesPolicy.AllowPersistentCookies)
+            # profile.setPersistentStoragePath(get_resource_path(f"storage/{profile_id}"))
+            
+            self.profiles[index] = profile
+            
+            # 2. 创建独立 Page
+            page = QWebEnginePage(profile, self)
+            
+            # 3. 创建 View
             web = QWebEngineView()
+            web.setPage(page)
             web.setUrl(QUrl(GAME_URL))
+            
             self.stack.addWidget(web)
             self.web_views[index] = web
+            
         self.current_index = index
         self.stack.setCurrentWidget(self.web_views[index])
         self.web_views[index].show()
         self.update_button_ui()
 
-    # --- 开启加速逻辑 ---
+    def update_button_ui(self):
+        idx = self.current_index
+        is_skipping = self.skip_states[idx]
+        self.auto_skip_btn.setChecked(is_skipping)
+        self.auto_skip_btn.setText("自动挂机中" if is_skipping else "自动挂机")
+        self.speed_btn.setChecked(self.speed_states[idx])
+
     def toggle_speed(self):
-        web = self.web_views[self.current_index]
+        idx = self.current_index
+        web = self.web_views[idx]
         if not web: return
-        self.speed_states[self.current_index] = self.speed_btn.isChecked()
+        
+        self.speed_states[idx] = self.speed_btn.isChecked()
         target = 5.0 if self.speed_btn.isChecked() else 1.0
+        
         js = f"""
         (function() {{
             if (!window._sh) {{
@@ -116,34 +152,25 @@ class GameWindow(QWidget):
                 window.setTimeout = (f, t) => _st(f, t / window._sv);
                 window.setInterval = (f, t) => _si(f, t / window._sv);
             }}
-            const adj = () => {{
-                const d = {target} - window._sv;
-                if (Math.abs(d) < 0.05) window._sv = {target};
-                else {{ window._sv += d * 0.2; _setTimeout(adj, 16); }}
-            }};
-            const _setTimeout = window._originalSetTimeout || window.setTimeout;
-            adj();
+            window._sv = {target};
+            console.log("窗口加速已调整为: " + window._sv);
         }})();
         """
         web.page().runJavaScript(js)
 
-    # --- 自动挂机切换逻辑 ---
     def toggle_auto_skip(self):
         idx = self.current_index
         is_opening = self.auto_skip_btn.isChecked()
         self.skip_states[idx] = is_opening
         
         if is_opening:
-            print(f"▶ 窗口 {idx+1} 挂机开启：搜索 guaji.png 锁定坐标")
-            # 立即尝试识别一次挂机按钮并存坐标
+            print(f"▶ 窗口 {idx+1} 挂机开启")
             self.locate_and_click_guaji(idx)
             if not self.silence_timer.isActive():
-                self.silence_timer.start(66) # 开启每秒15次的高频 Silence 扫描
+                self.silence_timer.start(100) # 0.1秒扫描一次，兼顾5窗性能
         else:
             print(f"⏹ 窗口 {idx+1} 挂机停止")
-            # 使用缓存的坐标点击一次（执行游戏内“关闭”操作）
             if self.cached_coords[idx]:
-                print(f"✅ 点击缓存坐标以关闭挂机")
                 self.click_at(self.web_views[idx], self.cached_coords[idx].x(), self.cached_coords[idx].y())
             
             if not any(self.skip_states):
@@ -152,7 +179,6 @@ class GameWindow(QWidget):
         self.update_button_ui()
 
     def locate_and_click_guaji(self, idx):
-        """专门用于识别 guaji.png 并缓存坐标"""
         web = self.web_views[idx]
         screen = self.get_screenshot(web)
         if screen is None: return
@@ -168,20 +194,19 @@ class GameWindow(QWidget):
             cx, cy = max_l[0] + w/2, max_l[1] + h/2
             self.cached_coords[idx] = QPointF(float(cx), float(cy))
             self.click_at(web, cx, cy)
-            print(f"📌 坐标锁定: {cx}, {cy}")
+            print(f"📌 窗口 {idx+1} 坐标锁定: {cx}, {cy}")
 
     def scan_silence_logic(self):
-        """高频扫描 Silence 文件夹图片"""
         if self.is_scanning: return
         self.is_scanning = True
         try:
+            # 轮询所有开启了挂机的窗口
             for i in range(WINDOW_COUNT):
                 if not self.skip_states[i] or not self.web_views[i]: continue
                 
                 screen = self.get_screenshot(self.web_views[i])
                 if screen is None: continue
 
-                # 遍历 Silence 目录
                 path = Path(SILENCE_DIR)
                 if not path.exists(): continue
                 
@@ -196,12 +221,13 @@ class GameWindow(QWidget):
                     if max_v >= 0.8:
                         h, w = temp.shape[:2]
                         self.click_at(self.web_views[i], max_l[0] + w/2, max_l[1] + h/2)
-                        print(f"🎯 Silence命中: {img_p.name}")
+                        print(f"🎯 窗口 {i+1} Silence命中: {img_p.name}")
                         break 
         finally:
             self.is_scanning = False
 
     def get_screenshot(self, web_view):
+        # 即使窗口在后台隐藏，grab() 依然能抓取到渲染的内容
         pixmap = web_view.grab()
         if pixmap.isNull(): return None
         img = pixmap.toImage().convertToFormat(QImage.Format.Format_RGBA8888)
@@ -213,7 +239,7 @@ class GameWindow(QWidget):
         target = web.focusProxy()
         p = QPointF(float(x), float(y))
         m = Qt.KeyboardModifier.NoModifier
-        target.window().activateWindow() # 确保窗口激活
+        # 不需要窗口 activate 也可以发送事件，这样后台窗口也能点击
         QApplication.postEvent(target, QMouseEvent(QMouseEvent.Type.MouseButtonPress, p, Qt.MouseButton.LeftButton, Qt.MouseButton.LeftButton, m))
         QTimer.singleShot(40, lambda: QApplication.postEvent(target, QMouseEvent(QMouseEvent.Type.MouseButtonRelease, p, Qt.MouseButton.LeftButton, Qt.MouseButton.LeftButton, m)))
 
