@@ -24,6 +24,8 @@ env:
 jobs:
   build:
     runs-on: windows-latest
+    permissions:
+      contents: write  # 必须开启写入权限才能创建 Release
 
     steps:
       - name: 检查源代码
@@ -44,16 +46,12 @@ jobs:
         if: github.event.inputs.use_upx == 'true'
         run: |
           choco install upx
-          echo "UPX_PATH=--upx-dir C:\ProgramData\chocolatey\bin" >> $GITHUB_ENV
+          echo "UPX_PATH=--upx-dir C:\ProgramData\chocolatey\bin" >> $env:GITHUB_ENV
 
       - name: 执行 PyInstaller 打包
         shell: pwsh
         run: |
           # 使用 ` 符号进行 Powershell 换行
-          # --noconfirm: 自动覆盖原有目录
-          # --onefile: 生成单文件
-          # --windowed: 无控制台窗口
-          # --add-data: 包含图片和图标资源 (Windows 分号隔离)
           pyinstaller --noconfirm --onefile --windowed `
             --icon="ico/icon.ico" `
             --add-data "image;image" `
@@ -69,7 +67,7 @@ jobs:
           mkdir release_dir
           mv dist/*.exe release_dir/
           echo "FIRMWARE=$((Get-Item release_dir).FullName)" >> $env:GITHUB_ENV
-          echo "status=success" >> $GITHUB_OUTPUT
+          "status=success" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: 创建 GitHub Release 标签
         id: tag
@@ -77,10 +75,14 @@ jobs:
         shell: pwsh
         run: |
           $tag_name = "${{ github.event.inputs.version }}-$(Get-Date -Format 'yyyyMMdd-HHmm')"
-          echo "release_tag=$tag_name" >> $env:GITHUB_OUTPUT
-          "编译时间: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" > release.txt
-          "环境: Windows Latest / Python ${{ env.PYTHON_VERSION }}" >> release.txt
-          echo "status=success" >> $env:GITHUB_OUTPUT
+          
+          # 正确的 PowerShell 写入变量语法
+          "release_tag=$tag_name" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "status=success" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          
+          # 生成发布说明
+          "编译时间: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Out-File -FilePath release.txt
+          "环境: Windows Latest / Python ${{ env.PYTHON_VERSION }}" | Out-File -FilePath release.txt -Append
 
       - name: 上传 EXE 到 GitHub Releases
         uses: softprops/action-gh-release@v2
