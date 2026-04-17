@@ -110,8 +110,8 @@ def send_click_to_all(windows, coords):
 
 def main():
     # 1. 获取三层窗口句柄
-    # 最外层窗口：LDPlayerMainFrame / 长生天尊
-    hwnd_outer = get_window_handle("LDPlayerMainFrame", "长生天尊")
+    # 最外层窗口：LDPlayerMainFrame / 墨族
+    hwnd_outer = get_window_handle("LDPlayerMainFrame", "墨族")
     if hwnd_outer == 0:
         return
 
@@ -141,10 +141,10 @@ def main():
     current_index = 0  # 当前模板索引（从0开始）
     total_templates = len(templates)
     rounds = 0  # 已完成轮数
-    RETRY_INTERVAL = 0.5  # 5毫秒重试间隔
-    MAX_RETRY_COUNT = 2    # 单张图基础重试次数
-    NEXT_IMG_TIMEOUT = 1  # 切换下一张图的超时时间（秒）
-    REPEAT_CLICK_MAX = 3  # 超时后重复点击当前图的最大次数
+    RETRY_INTERVAL = 0.1  # 5毫秒重试间隔
+    MAX_RETRY_COUNT = 1   # 单张图基础重试次数
+    NEXT_IMG_TIMEOUT = 0.001  # 切换下一张图的超时时间（秒）
+    REPEAT_CLICK_MAX = 1  # 超时后重复点击当前图的最大次数
 
     print("开始按顺序点击模板，按 F8 键结束...")
     print(f"总模板数: {total_templates}，最大轮数: {MAX_ROUNDS}")
