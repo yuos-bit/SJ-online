@@ -73,7 +73,7 @@ def window_screenshot(hwnd):
 
 def main():
     # 1. 初始化窗口句柄 (保持你的三层逻辑)
-    hwnd_outer = win32gui.FindWindow("LDPlayerMainFrame", "墨族")
+    hwnd_outer = win32gui.FindWindow("LDPlayerMainFrame", "长生天尊")
     if not hwnd_outer:
         print("错误: 找不到模拟器主窗口")
         return
