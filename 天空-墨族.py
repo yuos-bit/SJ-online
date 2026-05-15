@@ -100,10 +100,10 @@ def main():
     total_templates = len(templates)
 
     print(f"\n--- 极速模式启动 (共 {total_templates} 张图) ---")
-    print("按 Q 退出脚本\n")
+    print("按 F8 退出脚本\n")
 
     while True:
-        if keyboard.is_pressed('q'):
+        if keyboard.is_pressed('f8'):
             print("脚本已停止")
             break
         
@@ -113,7 +113,7 @@ def main():
 
         # 高频识别循环
         while time.time() - start_wait_time < WAIT_FOR_IMAGE_TIMEOUT:
-            if keyboard.is_pressed('q'): return
+            if keyboard.is_pressed('f8'): return
 
             img_bgra, (ol, ot) = window_screenshot(hwnd_outer)
             target_bgr = img_bgra[:, :, :3] # 快速转换
