@@ -94,7 +94,7 @@ def main():
         return
 
     # 3. 运行配置
-    WAIT_FOR_IMAGE_TIMEOUT = 0.1  # 单个图片找不到时，持续循环找0.5秒
+    WAIT_FOR_IMAGE_TIMEOUT = 0.1  # 单个图片找不到时，持续循环找0.1秒
     MATCH_THRESHOLD = 0.8
     current_index = 0
     total_templates = len(templates)
