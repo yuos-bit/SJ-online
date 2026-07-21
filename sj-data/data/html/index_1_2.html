@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" style="font-size: 100px;">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <title>世界online</title>
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="世界online">
+    <meta name="apple-mobile-web-app-status-bar-style" content="white">
+    <meta name="full-screen" content="true">
+    <meta name="screen-orientation" content="portrait">
+    <meta name="x5-fullscreen" content="true">
+    <meta name="360-fullscreen" content="true">
+
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="cache" content="no-cache">
+    <meta http-equiv="expires" content="0">
+
+    <link rel="apple-touch-icon" href="https://sjh5cdn2.good321.net/resgood/icon.png" sizes="57x57">
+    <link rel="apple-touch-icon" href="https://sjh5cdn2.good321.net/resgood/icon.png" sizes="72x72">
+    <link rel="apple-touch-icon" href="https://sjh5cdn2.good321.net/resgood/icon.png" sizes="76x76">
+    <link rel="apple-touch-icon" href="https://sjh5cdn2.good321.net/resgood/icon.png" sizes="114x114">
+    <link rel="apple-touch-icon" href="https://sjh5cdn2.good321.net/resgood/icon.png" sizes="120x120">
+    <link rel="apple-touch-icon" href="https://sjh5cdn2.good321.net/resgood/icon.png" sizes="144x144">
+    <link rel="apple-touch-icon" href="https://sjh5cdn2.good321.net/resgood/icon.png" sizes="152x152">
+    <meta name="description" content="世界OL">
+    <meta name="keywords" content="谷得,世界OL,世界online,游戏">
+    <link href="https://sjh5cdn2.good321.net/resgood/favicon.ico" rel="shortcut icon" type="image/x-icon">
+
+    <style>
+        html,
+        body {
+            touch-action: none;
+            -ms-touch-action: none;
+            background: #000000;
+            padding: 0;
+            border: 0;
+            margin: 0;
+            height: 100%;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div style="margin: auto;width: 100%;height: 100%;" class="egret-player" data-entry-class="Launcher"
+        data-orientation="auto" data-scale-mode="fixedNarrow" data-frame-rate="60" data-content-width="720"
+        data-content-height="1280" data-multi-fingered="2" data-show-fps="false" data-show-log="false"
+        data-show-fps-style="x:0,y:0,size:12,textColor:0xffffff,bgAlpha:0.9">
+
+        <div id="loading">
+
+            <img id="bg" src="./bg.jpg" />
+
+            <div class="g-container">
+                <div id="progress-img"></div>
+            </div>
+
+            <div class="progress-text flex flex-hc">
+                <p id="progress-text"></p>
+                <div class="flex ml5">
+                    <div class="animation-block"></div>
+                    <div class="animation-block ml5"></div>
+                    <div class="animation-block ml5"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <style>
+        #loading {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            display: flex;
+            display: -webkit-flex;
+            -webkit-justify-content: center;
+            justify-content: center;
+            -webkit-align-items: center;
+            align-items: center;
+        }
+
+        .g-container {
+            bottom: 100px;
+            left: 50%;
+            position: absolute;
+            transform: translateX(-50%);
+
+            width: 50%;
+            max-width: 750px;
+            height: 8px;
+            border-radius: 8px 8px 8px 8px;
+            background: #1e335c;
+            border: 1px solid rgb(0, 0, 0);
+        }
+
+        #progress-img {
+            width: 0%;
+            height: inherit;
+            border-radius: 8px 8px 8px 8px;
+            background: #e4c45c;
+            transition: width .2s linear;
+        }
+
+        .progress-text {
+            bottom: 50px;
+            position: absolute;
+        }
+
+        .flex>p {
+            font-size: 16px;
+            color: black;
+        }
+
+        .flex-hc {
+            -webkit-align-items: center;
+            align-items: center;
+        }
+
+        .flex {
+            text-align: center !important;
+            display: -webkit-flex;
+            display: flex;
+        }
+
+        .ml5 {
+            margin-left: 0.05rem;
+        }
+
+        .animation-block {
+            width: 4px;
+            height: 4px;
+            background: black;
+            -webkit-animation: rotateBlock 2s infinite ease-in-out;
+            animation: rotateBlock 2s infinite ease-in-out;
+        }
+
+        @-webkit-keyframes rotateBlock {
+            0.00% {
+                -webkit-transform: rotateX(0) rotateY(0)
+            }
+
+            50% {
+                -webkit-transform: rotateX(-180deg) rotateY(0)
+            }
+
+            100% {
+                -webkit-transform: rotateX(-180deg) rotateY(-180deg)
+            }
+        }
+
+        @keyframes rotateBlock {
+            0.00% {
+                transform: rotateX(0) rotateY(0)
+            }
+
+            50% {
+                transform: rotateX(-180deg) rotateY(0)
+            }
+
+            100% {
+                transform: rotateX(-180deg) rotateY(-180deg)
+            }
+        }
+    </style>
+
+
+    <script>(function () {
+            let sW = window.innerWidth;
+            let sH = window.innerHeight;
+            let imgW = 1920;
+            let imgH = 1280;
+            let scale = Math.max(sW / imgW, sH / imgH);
+            let bgImg = document.getElementById("bg");
+            if (bgImg) {
+                bgImg.width = imgW * scale;
+                bgImg.height = imgH * scale;
+            }
+
+            var s = document.createElement("script");
+            var v = Date.now() + Math.random();
+            s.async = false;
+            s.src = "gd.js?v=" + v;
+            document.body.appendChild(s);
+        })();</script>
+
+</html>

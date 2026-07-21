@@ -1,0 +1,37 @@
+[
+  {
+    "direction": "send",
+    "time": 1784509429929,
+    "size": 22
+  },
+  {
+    "direction": "send",
+    "time": 1784509430035,
+    "size": 4
+  },
+  {
+    "direction": "send",
+    "time": 1784509430035,
+    "size": 4
+  },
+  {
+    "direction": "send",
+    "time": 1784509441141,
+    "size": 4
+  },
+  {
+    "direction": "send",
+    "time": 1784509443671,
+    "size": 35
+  },
+  {
+    "direction": "send",
+    "time": 1784509443775,
+    "size": 4
+  },
+  {
+    "direction": "send",
+    "time": 1784509443878,
+    "size": 4
+  }
+]

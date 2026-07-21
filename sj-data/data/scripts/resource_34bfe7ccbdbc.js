@@ -1,0 +1,1 @@
+var a = 0;b = function () {postMessage("");};onmessage = function (e) {clearInterval(a);if (e.data === "start") {a = setInterval(b, 60);}};

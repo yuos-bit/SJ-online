@@ -1,0 +1,1 @@
+{"serverType":90,"version":302,"codeVersion":"0.0.2","host":"wss://sjh5server.good321.net","port":7003,"openPay":7,"payApi":"https://sjh5qa.good321.net/callback/micropf","cdnUrl":"https://sjh5cdn1.good321.net/res/,https://sjh5cdn2.good321.net/res/","payconfig":{"total_pay":1,"ios_pay":1,"android_pay":1,"pc_pay":1},"iosPayUrl":"https://sjh5loginnew.good321.net/submitOrder"}
