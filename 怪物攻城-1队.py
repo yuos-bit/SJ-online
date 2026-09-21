@@ -44,7 +44,7 @@ def click(hwnd, x, y):
     win32api.PostMessage(hwnd, win32con.WM_LBUTTONUP, 0, lp)
 
 def main():
-    TITLE = "墨族"; JPG = "jpg1"; KEY = 'f8'; TH = 0.85
+    TITLE = "天空1队"; JPG = "jpg7"; KEY = 'q'; TH = 0.85
     ho = win32gui.FindWindow("LDPlayerMainFrame", TITLE)
     if not ho: print(f"未找到窗口: {TITLE}"); return
     hm = child(ho, "RenderWindow", "TheRender")
@@ -63,6 +63,6 @@ def main():
             for h in handles:
                 cx, cy = win32gui.ScreenToClient(h, (sx, sy)); click(h, cx, cy)
             print(f"[{i+1}/{n}] {name}")
-        i = (i + 1) % n; time.sleep(0.2)
+        i = (i + 1) % n; time.sleep(0.15)
 
 if __name__ == "__main__": main()
